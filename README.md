@@ -6,6 +6,8 @@ Aplicação composta por uma API REST em FastAPI e um frontend estático em HTML
 
 ```text
 .
+├── .github
+│   └── workflows
 ├── api
 │   ├── app
 │   │   ├── core
@@ -14,6 +16,8 @@ Aplicação composta por uma API REST em FastAPI e um frontend estático em HTML
 │   │   ├── services
 │   │   └── utils
 │   └── requirements.txt
+├── deploy
+│   └── portainer-stack.yml
 └── frontend
     └── index.html
 ```
@@ -58,12 +62,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ### 4. Servir o frontend estático
 
-```bash
-cd frontend
-python3 -m http.server 5500
-```
-
-Abra `http://localhost:5500`.
+O frontend já é servido pela própria API. Abra `http://localhost:8000`.
 
 ## Endpoint principal
 
@@ -82,3 +81,44 @@ Resposta:
 - `200 OK` com o arquivo em stream e `Content-Disposition: attachment`
 - `422` para URL inválida
 - `400` para falhas de download/processamento
+
+## Docker
+
+Build local:
+
+```bash
+docker build -t yt-download-api:local .
+docker run --rm -p 8000:8000 yt-download-api:local
+```
+
+## CI/CD
+
+### CI
+
+O workflow [ci.yml](/workspace/yt-download-api/.github/workflows/ci.yml) executa:
+
+- lint com `ruff`
+- validação sintática com `py_compile`
+- build da imagem Docker
+
+### Imagem e deploy
+
+O workflow [deploy-image.yml](/workspace/yt-download-api/.github/workflows/deploy-image.yml):
+
+- builda a imagem Docker
+- publica no GHCR
+- dispara o webhook do Portainer se `PORTAINER_WEBHOOK_URL` estiver configurado
+
+Secrets esperadas no GitHub:
+
+- `PORTAINER_WEBHOOK_URL`: webhook de atualização do stack no Portainer
+
+O `GITHUB_TOKEN` do próprio Actions é usado para publicar a imagem no GHCR.
+
+## Portainer
+
+O arquivo [portainer-stack.yml](/workspace/yt-download-api/deploy/portainer-stack.yml) pode ser usado como stack base no Portainer.
+
+Exemplo de variável de ambiente do stack:
+
+- `GHCR_IMAGE=ghcr.io/josecldjr/yt-download-api:latest`
