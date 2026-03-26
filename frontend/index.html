@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube Downloader</title>
+    <style>
+      :root {
+        --bg: #f4efe7;
+        --card: rgba(255, 252, 246, 0.92);
+        --text: #1f1f1f;
+        --muted: #6a6257;
+        --accent: #ca3c25;
+        --accent-hover: #a92f1c;
+        --border: rgba(31, 31, 31, 0.08);
+        --shadow: 0 22px 60px rgba(34, 24, 15, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(202, 60, 37, 0.18), transparent 32%),
+          radial-gradient(circle at bottom right, rgba(45, 78, 58, 0.14), transparent 26%),
+          linear-gradient(135deg, #efe4d3 0%, #f8f5ee 55%, #ede3d6 100%);
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .card {
+        width: min(100%, 640px);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 32px;
+        backdrop-filter: blur(16px);
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1.05;
+      }
+
+      p {
+        margin: 0 0 24px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .form {
+        display: grid;
+        gap: 14px;
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid rgba(31, 31, 31, 0.14);
+        border-radius: 16px;
+        padding: 16px 18px;
+        font-size: 1rem;
+        outline: none;
+        background: #fffdf9;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input:focus {
+        border-color: rgba(202, 60, 37, 0.6);
+        box-shadow: 0 0 0 4px rgba(202, 60, 37, 0.12);
+      }
+
+      button {
+        border: 0;
+        border-radius: 16px;
+        padding: 16px 18px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, var(--accent), #dd5b2a);
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.2s ease, background 0.2s ease;
+      }
+
+      button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        background: linear-gradient(135deg, var(--accent-hover), #bf461d);
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.75;
+      }
+
+      .status {
+        min-height: 24px;
+        font-size: 0.95rem;
+      }
+
+      .status.error {
+        color: #a92f1c;
+      }
+
+      .status.success {
+        color: #245c3c;
+      }
+
+      .hint {
+        margin-top: 18px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Baixar vídeo do YouTube</h1>
+      <p>
+        Informe a URL pública do vídeo. O frontend envia a requisição para a API REST,
+        recebe o arquivo e força o download no navegador.
+      </p>
+
+      <form id="download-form" class="form">
+        <input
+          id="video-url"
+          type="url"
+          placeholder="https://www.youtube.com/watch?v=..."
+          required
+        />
+        <button id="download-button" type="submit">Baixar</button>
+        <div id="status" class="status" aria-live="polite"></div>
+      </form>
+
+      <div class="hint">
+        Quando servido pela API, o frontend usa a mesma origem automaticamente.
+      </div>
+    </main>
+
+    <script>
+      const API_URL = new URL("/api/v1/downloads", window.location.origin).toString();
+
+      const form = document.getElementById("download-form");
+      const input = document.getElementById("video-url");
+      const button = document.getElementById("download-button");
+      const status = document.getElementById("status");
+
+      function setStatus(message, type = "") {
+        status.textContent = message;
+        status.className = `status ${type}`.trim();
+      }
+
+      function extractFilename(response) {
+        const disposition = response.headers.get("Content-Disposition");
+        if (!disposition) return "youtube-video.bin";
+
+        const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+        if (utf8Match?.[1]) {
+          return decodeURIComponent(utf8Match[1]);
+        }
+
+        const asciiMatch = disposition.match(/filename="?([^"]+)"?/i);
+        return asciiMatch?.[1] || "youtube-video.bin";
+      }
+
+      async function downloadVideo(url) {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url }),
+        });
+
+        if (!response.ok) {
+          let errorMessage = "Falha ao baixar o vídeo.";
+
+          try {
+            const errorData = await response.json();
+            if (errorData?.detail) {
+              errorMessage = errorData.detail;
+            }
+          } catch (_) {
+            // Ignore JSON parsing failures and keep default error message.
+          }
+
+          throw new Error(errorMessage);
+        }
+
+        const blob = await response.blob();
+        const filename = extractFilename(response);
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = downloadUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        URL.revokeObjectURL(downloadUrl);
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const url = input.value.trim();
+        if (!url) {
+          alert("Informe uma URL do YouTube.");
+          return;
+        }
+
+        button.disabled = true;
+        button.textContent = "Processando...";
+        setStatus("Preparando download...", "");
+
+        try {
+          await downloadVideo(url);
+          setStatus("Download iniciado com sucesso.", "success");
+        } catch (error) {
+          setStatus(error.message, "error");
+          alert(error.message);
+        } finally {
+          button.disabled = false;
+          button.textContent = "Baixar";
+        }
+      });
+    </script>
+  </body>
+  </html>
