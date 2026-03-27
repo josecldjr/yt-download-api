@@ -8,7 +8,10 @@ from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
 from app.models.access_token import AccessToken  # noqa: F401
+from app.models.api_configuration import ApiConfiguration  # noqa: F401
 from app.routers.admin_tokens import router as admin_tokens_router
+from app.routers.api_configuration import admin_router as admin_api_configuration_router
+from app.routers.api_configuration import router as api_configuration_router
 from app.routers.downloads import router as downloads_router
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -28,6 +31,10 @@ openapi_tags = [
     {
         "name": "admin",
         "description": "Protected endpoints for API management and access token administration.",
+    },
+    {
+        "name": "settings",
+        "description": "Public application settings consumed by the frontend.",
     },
 ]
 
@@ -113,3 +120,5 @@ async def serve_management_page_index() -> FileResponse:
 
 app.include_router(downloads_router, prefix=settings.api_prefix)
 app.include_router(admin_tokens_router, prefix=settings.api_prefix)
+app.include_router(api_configuration_router, prefix=settings.api_prefix)
+app.include_router(admin_api_configuration_router, prefix=settings.api_prefix)
