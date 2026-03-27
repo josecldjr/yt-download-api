@@ -13,6 +13,7 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  PORTAINER_WEBHOOK_URL: ${{ secrets.PORTAINER_WEBHOOK_URL }}
 
 jobs:
   docker:
@@ -50,5 +51,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Trigger Portainer webhook
-        if: ${{ secrets.PORTAINER_WEBHOOK_URL != '' }}
-        run: curl -fsSL -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}"
+        if: ${{ env.PORTAINER_WEBHOOK_URL != '' }}
+        run: curl -fsSL -X POST "${{ env.PORTAINER_WEBHOOK_URL }}"
