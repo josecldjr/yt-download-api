@@ -216,11 +216,17 @@
 
           const configuration = await response.json();
           requireApiAuthentication = Boolean(configuration.require_api_authentication);
-          populateQualityOptions(configuration.quality_options || ["1080p"], configuration.default_quality || "1080p");
+          populateQualityOptions(
+            configuration.quality_options || ["1080p"],
+            configuration.default_quality || "1080p",
+          );
           syncAuthenticationField();
         } catch (error) {
           requireApiAuthentication = true;
-          populateQualityOptions(["720p", "1080p", "1440p", "4k", "best"], "1080p");
+          populateQualityOptions(
+            ["144p", "360p", "480p", "720p", "1080p", "1440p", "4k", "best"],
+            "1080p",
+          );
           syncAuthenticationField();
           setStatus(error.message, "error");
         }

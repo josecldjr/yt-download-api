@@ -4,7 +4,7 @@ from app.models.api_configuration import ApiConfiguration
 
 
 DEFAULT_QUALITY = "1080p"
-QUALITY_OPTIONS = ["720p", "1080p", "1440p", "4k", "best"]
+QUALITY_OPTIONS = ["144p", "360p", "480p", "720p", "1080p", "1440p", "4k", "best"]
 
 
 def get_or_create_api_configuration(db: Session) -> ApiConfiguration:

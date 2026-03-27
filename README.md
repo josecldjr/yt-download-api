@@ -111,6 +111,9 @@ Payload:
 
 Supported `quality` values:
 
+- `144p`
+- `360p`
+- `480p`
 - `720p`
 - `1080p`
 - `1440p`

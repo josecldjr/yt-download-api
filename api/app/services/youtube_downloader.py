@@ -173,6 +173,9 @@ class YouTubeDownloaderService:
 
     def _quality_to_height(self, quality: DownloadQuality) -> int | None:
         mapping = {
+            "144p": 144,
+            "360p": 360,
+            "480p": 480,
             "720p": 720,
             "1080p": 1080,
             "1440p": 1440,
