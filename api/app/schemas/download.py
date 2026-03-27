@@ -15,5 +15,5 @@ class DownloadRequest(BaseModel):
     quality: DownloadQuality = Field(
         default="1080p",
         description="Requested maximum output quality.",
-        examples=["720p", "1080p", "1440p", "4k", "best"],
+        examples=["144p", "360p", "480p", "720p", "1080p", "1440p", "4k", "best"],
     )

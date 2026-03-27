@@ -23,4 +23,4 @@ class AdminApiConfigurationUpdate(BaseModel):
     )
 
 
-DownloadQuality = Literal["720p", "1080p", "1440p", "4k", "best"]
+DownloadQuality = Literal["144p", "360p", "480p", "720p", "1080p", "1440p", "4k", "best"]
