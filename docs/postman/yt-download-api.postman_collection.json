@@ -13,6 +13,14 @@
     {
       "key": "managementSecret",
       "value": "change-me-in-production"
+    },
+    {
+      "key": "apiAccessToken",
+      "value": "replace-with-generated-api-token"
+    },
+    {
+      "key": "tokenId",
+      "value": "replace-with-access-token-id"
     }
   ],
   "item": [
@@ -39,6 +47,10 @@
       "request": {
         "method": "POST",
         "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{apiAccessToken}}"
+          },
           {
             "key": "Content-Type",
             "value": "application/json"
@@ -105,7 +117,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Internal client\",\n  \"description\": \"Main integration token\",\n  \"content\": \"super-secret-token-value\"\n}"
+          "raw": "{\n  \"name\": \"Internal client\",\n  \"description\": \"Main integration token\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/admin/access-tokens",
@@ -120,6 +132,96 @@
           ]
         },
         "description": "Creates a new encrypted access token record."
+      },
+      "response": []
+    },
+    {
+      "name": "Rotate Access Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/access-tokens/{{tokenId}}/rotate",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "access-tokens",
+            "{{tokenId}}",
+            "rotate"
+          ]
+        },
+        "description": "Generates a new token value for an existing record."
+      },
+      "response": []
+    },
+    {
+      "name": "Update Access Token",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Internal client\",\n  \"description\": \"Updated metadata only\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/access-tokens/{{tokenId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "access-tokens",
+            "{{tokenId}}"
+          ]
+        },
+        "description": "Updates an existing access token record without changing its token value."
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Access Token",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/access-tokens/{{tokenId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "access-tokens",
+            "{{tokenId}}"
+          ]
+        },
+        "description": "Deletes an access token from the SQLite database."
       },
       "response": []
     }
