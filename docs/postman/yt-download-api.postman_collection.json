@@ -1,0 +1,312 @@
+{
+  "info": {
+    "name": "YT Download API",
+    "_postman_id": "d96816dc-84e5-4a56-8f3c-yt-download-api",
+    "description": "Postman collection for the YT Download API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "managementSecret",
+      "value": "change-me-in-production"
+    },
+    {
+      "key": "apiAccessToken",
+      "value": "replace-with-generated-api-token"
+    },
+    {
+      "key": "tokenId",
+      "value": "replace-with-access-token-id"
+    }
+  ],
+  "item": [
+    {
+      "name": "Healthcheck",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "description": "Checks whether the API is available."
+      },
+      "response": []
+    },
+    {
+      "name": "Download Video",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{apiAccessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"url\": \"https://www.youtube.com/watch?v=jNQXAC9IVRw\",\n  \"quality\": \"1080p\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/downloads",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "downloads"
+          ]
+        },
+        "description": "Starts the video download and returns the binary file."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Public Settings",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/settings/public",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "settings",
+            "public"
+          ]
+        },
+        "description": "Returns the public frontend settings, including supported qualities and whether download authentication is required."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Download Settings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/settings/downloads",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "settings",
+            "downloads"
+          ]
+        },
+        "description": "Returns the current download authentication policy for management clients."
+      },
+      "response": []
+    },
+    {
+      "name": "Update Download Settings",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"require_api_authentication\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/settings/downloads",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "settings",
+            "downloads"
+          ]
+        },
+        "description": "Enables or disables API token authentication for public downloads."
+      },
+      "response": []
+    },
+    {
+      "name": "List Access Tokens",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/access-tokens",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "access-tokens"
+          ]
+        },
+        "description": "Lists all stored access tokens for the management console."
+      },
+      "response": []
+    },
+    {
+      "name": "Create Access Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Internal client\",\n  \"description\": \"Main integration token\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/access-tokens",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "access-tokens"
+          ]
+        },
+        "description": "Creates a new encrypted access token record."
+      },
+      "response": []
+    },
+    {
+      "name": "Rotate Access Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/access-tokens/{{tokenId}}/rotate",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "access-tokens",
+            "{{tokenId}}",
+            "rotate"
+          ]
+        },
+        "description": "Generates a new token value for an existing record."
+      },
+      "response": []
+    },
+    {
+      "name": "Update Access Token",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Internal client\",\n  \"description\": \"Updated metadata only\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/access-tokens/{{tokenId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "access-tokens",
+            "{{tokenId}}"
+          ]
+        },
+        "description": "Updates an existing access token record without changing its token value."
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Access Token",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/access-tokens/{{tokenId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "access-tokens",
+            "{{tokenId}}"
+          ]
+        },
+        "description": "Deletes an access token from the SQLite database."
+      },
+      "response": []
+    }
+  ]
+}

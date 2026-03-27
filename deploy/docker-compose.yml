@@ -1,0 +1,21 @@
+services:
+  yt-download-api:
+    image: ${GHCR_IMAGE:-ghcr.io/josecldjr/yt-download-api:latest}
+    container_name: yt-download-api
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      APP_NAME: YouTube Download API
+      API_PREFIX: /api/v1
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
+      REQUEST_TIMEOUT_SECONDS: ${REQUEST_TIMEOUT_SECONDS:-300}
+      MANAGEMENT_SECRET: ${MANAGEMENT_SECRET:-change-me-in-production}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-change-me-in-production}
+      YOUTUBE_COOKIEFILE: ${YOUTUBE_COOKIEFILE:-}
+      YOUTUBE_PO_TOKEN: ${YOUTUBE_PO_TOKEN:-}
+    volumes:
+      - yt-download-api-data:/app/data
+
+volumes:
+  yt-download-api-data:
