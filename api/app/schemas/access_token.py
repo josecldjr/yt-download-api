@@ -7,11 +7,11 @@ class AccessTokenBase(BaseModel):
 
 
 class AccessTokenCreate(AccessTokenBase):
-    content: str = Field(..., min_length=1, description="Plain-text token content.")
+    pass
 
 
 class AccessTokenUpdate(AccessTokenBase):
-    content: str = Field(..., min_length=1, description="Updated plain-text token content.")
+    pass
 
 
 class AccessTokenResponse(AccessTokenBase):

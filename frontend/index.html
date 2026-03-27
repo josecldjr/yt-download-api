@@ -123,10 +123,16 @@
     <main class="card">
       <h1>Download YouTube Videos</h1>
       <p>
-        Enter a public video URL. 
+        Enter a public video URL and a valid API access token generated in the management page.
       </p>
 
       <form id="download-form" class="form">
+        <input
+          id="api-token"
+          type="password"
+          placeholder="Paste your API access token"
+          required
+        />
         <input
           id="video-url"
           type="url"
@@ -145,11 +151,15 @@
 
     <script>
       const API_URL = new URL("/api/v1/downloads", window.location.origin).toString();
+      const TOKEN_STORAGE_KEY = "yt_download_api_access_token";
 
       const form = document.getElementById("download-form");
+      const tokenInput = document.getElementById("api-token");
       const input = document.getElementById("video-url");
       const button = document.getElementById("download-button");
       const status = document.getElementById("status");
+
+      tokenInput.value = sessionStorage.getItem(TOKEN_STORAGE_KEY) || "";
 
       function setStatus(message, type = "") {
         status.textContent = message;
@@ -169,11 +179,12 @@
         return asciiMatch?.[1] || "youtube-video.bin";
       }
 
-      async function downloadVideo(url) {
+      async function downloadVideo(url, token) {
         const response = await fetch(API_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
           },
           body: JSON.stringify({ url }),
         });
@@ -211,17 +222,25 @@
         event.preventDefault();
 
         const url = input.value.trim();
+        const token = tokenInput.value.trim();
+
+        if (!token) {
+          alert("Enter a valid API access token.");
+          return;
+        }
+
         if (!url) {
           alert("Enter a valid YouTube URL.");
           return;
         }
 
+        sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
         button.disabled = true;
         button.textContent = "Processing...";
         setStatus("Preparing download...", "");
 
         try {
-          await downloadVideo(url);
+          await downloadVideo(url, token);
           setStatus("Download started successfully.", "success");
         } catch (error) {
           setStatus(error.message, "error");

@@ -1,9 +1,10 @@
 import mimetypes
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.background import BackgroundTasks
 from fastapi.responses import FileResponse
 
+from app.dependencies.auth import require_api_access_token
 from app.schemas.download import DownloadRequest
 from app.services.youtube_downloader import (
     YouTubeDownloaderService,
@@ -63,10 +64,33 @@ downloader_service = YouTubeDownloaderService()
                 }
             },
         },
+        401: {
+            "description": "Missing or invalid API access token.",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "missing": {
+                            "summary": "Missing token",
+                            "value": {
+                                "detail": "A valid API access token is required."
+                            },
+                        },
+                        "invalid": {
+                            "summary": "Invalid token",
+                            "value": {
+                                "detail": "Invalid API access token."
+                            },
+                        },
+                    }
+                }
+            },
+        },
     },
 )
 async def create_download(
-    payload: DownloadRequest, background_tasks: BackgroundTasks
+    payload: DownloadRequest,
+    background_tasks: BackgroundTasks,
+    _: object = Depends(require_api_access_token),
 ) -> FileResponse:
     if not is_youtube_url(payload.url):
         raise HTTPException(
