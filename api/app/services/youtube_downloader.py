@@ -10,6 +10,7 @@ from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError, sanitize_filename
 
 from app.core.config import settings
+from app.schemas.api_configuration import DownloadQuality
 
 
 class YoutubeDownloadException(Exception):
@@ -24,7 +25,7 @@ class DownloadedVideo:
 
 
 class YouTubeDownloaderService:
-    def download(self, url: str) -> DownloadedVideo:
+    def download(self, url: str, quality: DownloadQuality) -> DownloadedVideo:
         temp_dir = Path(
             tempfile.mkdtemp(prefix=settings.temp_dir_prefix, dir=None)
         ).resolve()
@@ -51,6 +52,7 @@ class YouTubeDownloaderService:
                 base_options=base_options,
                 ffmpeg_available=ffmpeg_available,
                 ffmpeg_path=ffmpeg_path,
+                quality=quality,
             )
 
             info = None
@@ -136,18 +138,18 @@ class YouTubeDownloaderService:
         base_options: dict,
         ffmpeg_available: bool,
         ffmpeg_path: str | None,
+        quality: DownloadQuality,
     ) -> list[dict]:
         attempts: list[dict] = []
+        height_limit = self._quality_to_height(quality)
+        dash_selector = self._build_dash_selector(height_limit)
+        progressive_selector = self._build_progressive_selector(height_limit)
 
         if ffmpeg_available:
             attempts.append(
                 {
                     **base_options,
-                    "format": (
-                        "bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]"
-                        "/best[ext=mp4][height<=1080]"
-                        "/best[height<=1080]"
-                    ),
+                    "format": dash_selector,
                     "merge_output_format": "mp4",
                     "ffmpeg_location": ffmpeg_path,
                 }
@@ -158,12 +160,7 @@ class YouTubeDownloaderService:
         attempts.append(
             {
                 **base_options,
-                "format": (
-                    "best[ext=mp4][acodec!=none][vcodec!=none][height<=1080]"
-                    "/18"
-                    "/best[acodec!=none][vcodec!=none][height<=1080]"
-                    "/best"
-                ),
+                "format": progressive_selector,
             }
         )
 
@@ -173,3 +170,34 @@ class YouTubeDownloaderService:
         for path in temp_dir.iterdir():
             if path.is_file():
                 path.unlink(missing_ok=True)
+
+    def _quality_to_height(self, quality: DownloadQuality) -> int | None:
+        mapping = {
+            "720p": 720,
+            "1080p": 1080,
+            "1440p": 1440,
+            "4k": 2160,
+            "best": None,
+        }
+        return mapping[quality]
+
+    def _build_dash_selector(self, height_limit: int | None) -> str:
+        if height_limit is None:
+            return "bestvideo+bestaudio/best"
+
+        return (
+            f"bestvideo[height<={height_limit}]+bestaudio"
+            f"/best[height<={height_limit}]"
+            "/best"
+        )
+
+    def _build_progressive_selector(self, height_limit: int | None) -> str:
+        if height_limit is None:
+            return "best[ext=mp4][acodec!=none][vcodec!=none]/best[acodec!=none][vcodec!=none]/best"
+
+        return (
+            f"best[ext=mp4][acodec!=none][vcodec!=none][height<={height_limit}]"
+            f"/best[acodec!=none][vcodec!=none][height<={height_limit}]"
+            "/18"
+            "/best"
+        )

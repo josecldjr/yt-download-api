@@ -6,6 +6,7 @@ from fastapi.responses import FileResponse
 
 from app.dependencies.auth import require_api_access_token
 from app.schemas.download import DownloadRequest
+from app.services.api_configuration import QUALITY_OPTIONS
 from app.services.youtube_downloader import (
     YouTubeDownloaderService,
     YoutubeDownloadException,
@@ -24,7 +25,8 @@ downloader_service = YouTubeDownloaderService()
     description=(
         "Receives a public YouTube URL, validates the input, downloads the video, "
         "and returns the file with `Content-Disposition: attachment` so the client "
-        "can trigger the browser download."
+        "can trigger the browser download. Quality can be capped at one of the "
+        f"supported values: {', '.join(QUALITY_OPTIONS)}."
     ),
     responses={
         200: {
@@ -65,7 +67,7 @@ downloader_service = YouTubeDownloaderService()
             },
         },
         401: {
-            "description": "Missing or invalid API access token.",
+            "description": "Missing or invalid API access token when authentication is enabled.",
             "content": {
                 "application/json": {
                     "examples": {
@@ -99,7 +101,7 @@ async def create_download(
         )
 
     try:
-        downloaded_video = downloader_service.download(payload.url)
+        downloaded_video = downloader_service.download(payload.url, payload.quality)
     except YoutubeDownloadException as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

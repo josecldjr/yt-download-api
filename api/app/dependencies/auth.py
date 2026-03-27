@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.db.session import get_db_session
 from app.models.access_token import AccessToken
+from app.services.api_configuration import get_or_create_api_configuration
 from app.services.token_cipher import TokenCipher
 
 management_bearer = HTTPBearer(auto_error=False)
@@ -32,7 +33,11 @@ def require_management_access(
 def require_api_access_token(
     credentials: HTTPAuthorizationCredentials | None = Depends(api_bearer),
     db: Session = Depends(get_db_session),
-) -> AccessToken:
+) -> AccessToken | None:
+    configuration = get_or_create_api_configuration(db)
+    if not configuration.require_api_authentication:
+        return None
+
     provided = credentials.credentials.strip() if credentials else ""
     if not provided:
         raise HTTPException(

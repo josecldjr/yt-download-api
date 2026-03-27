@@ -61,7 +61,7 @@
         gap: 14px;
       }
 
-      input {
+      input, select {
         width: 100%;
         border: 1px solid rgba(31, 31, 31, 0.14);
         border-radius: 16px;
@@ -72,9 +72,13 @@
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
       }
 
-      input:focus {
+      input:focus, select:focus {
         border-color: rgba(202, 60, 37, 0.6);
         box-shadow: 0 0 0 4px rgba(202, 60, 37, 0.12);
+      }
+
+      .hidden {
+        display: none !important;
       }
 
       button {
@@ -123,16 +127,18 @@
     <main class="card">
       <h1>Download YouTube Videos</h1>
       <p>
-        Enter a public video URL and a valid API access token generated in the management page.
+        Enter a public video URL, choose a target quality, and download the best matching file the source can provide.
       </p>
 
       <form id="download-form" class="form">
-        <input
-          id="api-token"
-          type="password"
-          placeholder="Paste your API access token"
-          required
-        />
+        <div id="token-field" class="hidden">
+          <input
+            id="api-token"
+            type="password"
+            placeholder="Paste your API access token"
+          />
+        </div>
+        <select id="quality" aria-label="Download quality"></select>
         <input
           id="video-url"
           type="url"
@@ -151,14 +157,18 @@
 
     <script>
       const API_URL = new URL("/api/v1/downloads", window.location.origin).toString();
+      const PUBLIC_SETTINGS_URL = new URL("/api/v1/settings/public", window.location.origin).toString();
       const TOKEN_STORAGE_KEY = "yt_download_api_access_token";
 
       const form = document.getElementById("download-form");
+      const tokenField = document.getElementById("token-field");
       const tokenInput = document.getElementById("api-token");
+      const qualitySelect = document.getElementById("quality");
       const input = document.getElementById("video-url");
       const button = document.getElementById("download-button");
       const status = document.getElementById("status");
 
+      let requireApiAuthentication = true;
       tokenInput.value = sessionStorage.getItem(TOKEN_STORAGE_KEY) || "";
 
       function setStatus(message, type = "") {
@@ -179,14 +189,56 @@
         return asciiMatch?.[1] || "youtube-video.bin";
       }
 
-      async function downloadVideo(url, token) {
+      function populateQualityOptions(options, defaultQuality) {
+        qualitySelect.innerHTML = options
+          .map((option) => {
+            const selected = option === defaultQuality ? " selected" : "";
+            return `<option value="${option}"${selected}>${option.toUpperCase()}</option>`;
+          })
+          .join("");
+      }
+
+      function syncAuthenticationField() {
+        tokenField.classList.toggle("hidden", !requireApiAuthentication);
+        tokenInput.required = requireApiAuthentication;
+
+        if (!requireApiAuthentication) {
+          tokenInput.value = "";
+        }
+      }
+
+      async function loadPublicConfiguration() {
+        try {
+          const response = await fetch(PUBLIC_SETTINGS_URL);
+          if (!response.ok) {
+            throw new Error("Failed to load API settings.");
+          }
+
+          const configuration = await response.json();
+          requireApiAuthentication = Boolean(configuration.require_api_authentication);
+          populateQualityOptions(configuration.quality_options || ["1080p"], configuration.default_quality || "1080p");
+          syncAuthenticationField();
+        } catch (error) {
+          requireApiAuthentication = true;
+          populateQualityOptions(["720p", "1080p", "1440p", "4k", "best"], "1080p");
+          syncAuthenticationField();
+          setStatus(error.message, "error");
+        }
+      }
+
+      async function downloadVideo(url, quality, token) {
+        const headers = {
+          "Content-Type": "application/json",
+        };
+
+        if (requireApiAuthentication) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const response = await fetch(API_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-          body: JSON.stringify({ url }),
+          headers,
+          body: JSON.stringify({ url, quality }),
         });
 
         if (!response.ok) {
@@ -222,9 +274,10 @@
         event.preventDefault();
 
         const url = input.value.trim();
+        const quality = qualitySelect.value;
         const token = tokenInput.value.trim();
 
-        if (!token) {
+        if (requireApiAuthentication && !token) {
           alert("Enter a valid API access token.");
           return;
         }
@@ -234,13 +287,17 @@
           return;
         }
 
-        sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+        if (requireApiAuthentication) {
+          sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+        } else {
+          sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+        }
         button.disabled = true;
         button.textContent = "Processing...";
         setStatus("Preparing download...", "");
 
         try {
-          await downloadVideo(url, token);
+          await downloadVideo(url, quality, token);
           setStatus("Download started successfully.", "success");
         } catch (error) {
           setStatus(error.message, "error");
@@ -250,6 +307,8 @@
           button.textContent = "Download";
         }
       });
+
+      loadPublicConfiguration();
     </script>
   </body>
   </html>
