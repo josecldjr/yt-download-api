@@ -10,3 +10,10 @@ services:
       API_PREFIX: /api/v1
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
       REQUEST_TIMEOUT_SECONDS: ${REQUEST_TIMEOUT_SECONDS:-300}
+      MANAGEMENT_SECRET: ${MANAGEMENT_SECRET:-change-me-in-production}
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-change-me-in-production}
+    volumes:
+      - yt-download-api-data:/app/data
+
+volumes:
+  yt-download-api-data:

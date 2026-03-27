@@ -17,7 +17,7 @@ Application composed of a FastAPI REST API and a static HTML frontend for downlo
 │   │   └── utils
 │   └── requirements.txt
 ├── deploy
-│   └── portainer-stack.yml
+│   └── docker-compose.yml
 └── frontend
     └── index.html
 ```
@@ -69,6 +69,29 @@ The frontend is already served by the API itself. Open `http://localhost:8000`.
 - Swagger UI: `http://localhost:8000/api-docs`
 - OpenAPI JSON: `http://localhost:8000/api-docs/openapi.json`
 - Postman Collection: [yt-download-api.postman_collection.json](/workspace/yt-download-api/docs/postman/yt-download-api.postman_collection.json)
+
+## Management
+
+- Management UI: `http://localhost:8000/manage`
+- Protected by `MANAGEMENT_SECRET`
+- Access tokens are stored in SQLite through SQLAlchemy
+- Token content is encrypted before persistence using `TOKEN_ENCRYPTION_KEY`
+
+Recommended environment variables:
+
+```bash
+export MANAGEMENT_SECRET="replace-with-a-strong-secret"
+export TOKEN_ENCRYPTION_KEY="replace-with-a-strong-secret-or-a-valid-fernet-key"
+```
+
+You can also start from [.env.example](/workspace/yt-download-api/.env.example).
+
+`DATABASE_URL` is optional:
+
+- local development default: `sqlite:///./app.db`
+- container default: `sqlite:////app/data/app.db`
+
+Only set `DATABASE_URL` if you want to override those defaults.
 
 ## Main endpoint
 
@@ -123,8 +146,18 @@ The built-in `GITHUB_TOKEN` from GitHub Actions is used to publish the image to 
 
 ## Portainer
 
-The file [portainer-stack.yml](/workspace/yt-download-api/deploy/portainer-stack.yml) can be used as the base stack in Portainer.
+The file [docker-compose.yml](/workspace/yt-download-api/deploy/docker-compose.yml) can be used as the base stack in Portainer.
 
-Example stack environment variable:
+The stack already mounts a persistent volume:
+
+- volume name: `yt-download-api-data`
+- mount path: `/app/data`
+- default container database path: `/app/data/app.db`
+
+That means SQLite data remains available after container recreation, as long as the Portainer volume is preserved.
+
+Example stack environment variables:
 
 - `GHCR_IMAGE=ghcr.io/josecldjr/yt-download-api:latest`
+- `MANAGEMENT_SECRET=replace-with-a-strong-secret`
+- `TOKEN_ENCRYPTION_KEY=replace-with-a-strong-secret-or-a-valid-fernet-key`

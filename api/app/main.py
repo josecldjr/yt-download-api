@@ -5,11 +5,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from app.core.config import settings
+from app.db.base import Base
+from app.db.session import engine
+from app.models.access_token import AccessToken  # noqa: F401
+from app.routers.admin_tokens import router as admin_tokens_router
 from app.routers.downloads import router as downloads_router
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = BASE_DIR / "frontend"
 INDEX_FILE = FRONTEND_DIR / "index.html"
+MANAGE_FILE = FRONTEND_DIR / "manage.html"
 
 openapi_tags = [
     {
@@ -19,6 +24,10 @@ openapi_tags = [
     {
         "name": "downloads",
         "description": "Endpoints to request and download YouTube videos.",
+    },
+    {
+        "name": "admin",
+        "description": "Protected endpoints for API management and access token administration.",
     },
 ]
 
@@ -53,6 +62,11 @@ app.add_middleware(
 )
 
 
+@app.on_event("startup")
+async def initialize_database() -> None:
+    Base.metadata.create_all(bind=engine)
+
+
 @app.get(
     "/health",
     tags=["health"],
@@ -80,4 +94,22 @@ async def serve_frontend_index() -> FileResponse:
     return await serve_frontend()
 
 
+@app.get("/manage", include_in_schema=False)
+async def serve_management_page() -> FileResponse:
+    return FileResponse(
+        MANAGE_FILE,
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
+
+
+@app.get("/manage.html", include_in_schema=False)
+async def serve_management_page_index() -> FileResponse:
+    return await serve_management_page()
+
+
 app.include_router(downloads_router, prefix=settings.api_prefix)
+app.include_router(admin_tokens_router, prefix=settings.api_prefix)
