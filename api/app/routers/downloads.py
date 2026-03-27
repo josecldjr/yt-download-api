@@ -19,15 +19,15 @@ downloader_service = YouTubeDownloaderService()
 @router.post(
     "",
     response_class=FileResponse,
-    summary="Baixar vídeo do YouTube",
+    summary="Download a YouTube video",
     description=(
-        "Recebe uma URL pública do YouTube, valida a entrada, faz o download do vídeo "
-        "e retorna o arquivo com `Content-Disposition: attachment` para disparar o "
-        "download no cliente."
+        "Receives a public YouTube URL, validates the input, downloads the video, "
+        "and returns the file with `Content-Disposition: attachment` so the client "
+        "can trigger the browser download."
     ),
     responses={
         200: {
-            "description": "Arquivo de vídeo retornado com sucesso.",
+            "description": "Video file returned successfully.",
             "content": {
                 "video/mp4": {
                     "schema": {
@@ -44,21 +44,21 @@ downloader_service = YouTubeDownloaderService()
             },
         },
         400: {
-            "description": "Falha ao processar ou baixar o vídeo.",
+            "description": "Failed to process or download the video.",
             "content": {
                 "application/json": {
                     "example": {
-                        "detail": "Não foi possível baixar este vídeo no momento."
+                        "detail": "The video could not be downloaded at this time."
                     }
                 }
             },
         },
         422: {
-            "description": "Payload inválido ou URL fora do padrão esperado.",
+            "description": "Invalid payload or unsupported URL format.",
             "content": {
                 "application/json": {
                     "example": {
-                        "detail": "Informe uma URL válida do YouTube."
+                        "detail": "Provide a valid YouTube URL."
                     }
                 }
             },
@@ -71,7 +71,7 @@ async def create_download(
     if not is_youtube_url(payload.url):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Informe uma URL válida do YouTube.",
+            detail="Provide a valid YouTube URL.",
         )
 
     try:

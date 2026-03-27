@@ -2,7 +2,7 @@
   "info": {
     "name": "YT Download API",
     "_postman_id": "d96816dc-84e5-4a56-8f3c-yt-download-api",
-    "description": "Colecao Postman da YT Download API.",
+    "description": "Postman collection for the YT Download API.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -26,7 +26,7 @@
             "health"
           ]
         },
-        "description": "Verifica se a API esta disponivel."
+        "description": "Checks whether the API is available."
       },
       "response": []
     },
@@ -55,7 +55,7 @@
             "downloads"
           ]
         },
-        "description": "Dispara o download do video e retorna o arquivo binario."
+        "description": "Starts the video download and returns the binary file."
       },
       "response": []
     }

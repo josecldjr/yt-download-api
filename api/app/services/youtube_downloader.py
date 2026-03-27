@@ -68,7 +68,7 @@ class YouTubeDownloaderService:
             if info is None:
                 if last_download_error is not None:
                     raise last_download_error
-                raise YoutubeDownloadException("Não foi possível baixar este vídeo no momento.")
+                raise YoutubeDownloadException("The video could not be downloaded at this time.")
 
             downloaded_file = self._resolve_downloaded_file(temp_dir)
             title = sanitize_filename(info.get("title") or "youtube-video", restricted=False)
@@ -84,7 +84,7 @@ class YouTubeDownloaderService:
             raise YoutubeDownloadException(self._normalize_error(exc)) from exc
         except Exception as exc:
             self._cleanup(temp_dir)
-            raise YoutubeDownloadException("Falha inesperada ao processar o download.") from exc
+            raise YoutubeDownloadException("Unexpected failure while processing the download.") from exc
 
     def cleanup(self, temp_dir: Path) -> None:
         self._cleanup(temp_dir)
@@ -99,7 +99,7 @@ class YouTubeDownloaderService:
 
         if not candidates:
             raise YoutubeDownloadException(
-                "Nenhum arquivo final foi gerado. Verifique se o ffmpeg está instalado para vídeos que exigem mesclagem."
+                "No final file was generated. Verify that ffmpeg is installed for videos that require merging."
             )
 
         return max(candidates, key=lambda item: item.stat().st_size)
@@ -109,13 +109,13 @@ class YouTubeDownloaderService:
         lowered = message.lower()
 
         if "ffmpeg is not installed" in lowered or "ffprobe" in lowered:
-            return "O host da API precisa ter ffmpeg instalado para mesclar vídeo e áudio em formatos separados."
+            return "The API host must have ffmpeg installed to merge separate video and audio streams."
         if "unsupported url" in lowered or "unable to extract" in lowered:
-            return "A URL informada não pôde ser processada como um vídeo válido do YouTube."
+            return "The provided URL could not be processed as a valid YouTube video."
         if "video unavailable" in lowered:
-            return "O vídeo está indisponível, privado ou com restrição regional."
+            return "The video is unavailable, private, or region-restricted."
 
-        return "Não foi possível baixar este vídeo no momento."
+        return "The video could not be downloaded at this time."
 
     def _cleanup(self, temp_dir: Path) -> None:
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -153,7 +153,7 @@ class YouTubeDownloaderService:
                 }
             )
 
-        # Progressive fallback avoids merging and often survives YouTube's
+        # Progressive fallback avoids merging and often survives YouTube
         # restrictions for videos where DASH URLs return 403.
         attempts.append(
             {

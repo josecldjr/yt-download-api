@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>YouTube Downloader</title>
+    <title>YouTube Video Downloader</title>
     <style>
       :root {
         --bg: #f4efe7;
@@ -121,10 +121,9 @@
   </head>
   <body>
     <main class="card">
-      <h1>Baixar vídeo do YouTube</h1>
+      <h1>Download YouTube Videos</h1>
       <p>
-        Informe a URL pública do vídeo. O frontend envia a requisição para a API REST,
-        recebe o arquivo e força o download no navegador.
+        Enter a public video URL. 
       </p>
 
       <form id="download-form" class="form">
@@ -134,12 +133,12 @@
           placeholder="https://www.youtube.com/watch?v=..."
           required
         />
-        <button id="download-button" type="submit">Baixar</button>
+        <button id="download-button" type="submit">Download</button>
         <div id="status" class="status" aria-live="polite"></div>
       </form>
 
       <div class="hint">
-        Quando servido pela API, o frontend usa a mesma origem automaticamente.
+        When served by the API, the frontend automatically uses the same origin.
       </div>
     </main>
 
@@ -179,7 +178,7 @@
         });
 
         if (!response.ok) {
-          let errorMessage = "Falha ao baixar o vídeo.";
+          let errorMessage = "Failed to download the video.";
 
           try {
             const errorData = await response.json();
@@ -212,23 +211,23 @@
 
         const url = input.value.trim();
         if (!url) {
-          alert("Informe uma URL do YouTube.");
+          alert("Enter a valid YouTube URL.");
           return;
         }
 
         button.disabled = true;
-        button.textContent = "Processando...";
-        setStatus("Preparando download...", "");
+        button.textContent = "Processing...";
+        setStatus("Preparing download...", "");
 
         try {
           await downloadVideo(url);
-          setStatus("Download iniciado com sucesso.", "success");
+          setStatus("Download started successfully.", "success");
         } catch (error) {
           setStatus(error.message, "error");
           alert(error.message);
         } finally {
           button.disabled = false;
-          button.textContent = "Baixar";
+          button.textContent = "Download";
         }
       });
     </script>

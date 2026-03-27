@@ -1,8 +1,8 @@
 # YT Download API
 
-Aplicação composta por uma API REST em FastAPI e um frontend estático em HTML puro para baixar vídeos do YouTube.
+Application composed of a FastAPI REST API and a static HTML frontend for downloading YouTube videos.
 
-## Estrutura
+## Structure
 
 ```text
 .
@@ -24,18 +24,18 @@ Aplicação composta por uma API REST em FastAPI e um frontend estático em HTML
 
 ## Setup
 
-### 1. Instalar dependências do sistema
+### 1. Install system dependencies
 
-`ffmpeg` é fortemente recomendado porque muitos vídeos do YouTube expõem vídeo e áudio em streams separados. Sem ele, a API só conseguirá baixar formatos progressivos que já venham com áudio embutido.
+`ffmpeg` is strongly recommended because many YouTube videos expose video and audio as separate streams. Without it, the API will only be able to download progressive formats that already include audio.
 
-Exemplo em Ubuntu/Debian:
+Example on Ubuntu/Debian:
 
 ```bash
 sudo apt-get update
 sudo apt-get install -y ffmpeg
 ```
 
-### 2. Criar ambiente virtual e instalar dependências Python
+### 2. Create a virtual environment and install Python dependencies
 
 ```bash
 cd api
@@ -45,7 +45,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 3. Subir a API
+### 3. Start the API
 
 ```bash
 cd api
@@ -53,24 +53,24 @@ source .venv/bin/activate
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Se quiser restringir CORS para origens específicas:
+If you want to restrict CORS to specific origins:
 
 ```bash
-export ALLOWED_ORIGINS="http://localhost:5500,https://seu-frontend.com"
+export ALLOWED_ORIGINS="http://localhost:5500,https://your-frontend.com"
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 4. Servir o frontend estático
+### 4. Serve the frontend
 
-O frontend já é servido pela própria API. Abra `http://localhost:8000`.
+The frontend is already served by the API itself. Open `http://localhost:8000`.
 
-## Documentação
+## Documentation
 
 - Swagger UI: `http://localhost:8000/api-docs`
 - OpenAPI JSON: `http://localhost:8000/api-docs/openapi.json`
 - Postman Collection: [yt-download-api.postman_collection.json](/workspace/yt-download-api/docs/postman/yt-download-api.postman_collection.json)
 
-## Endpoint principal
+## Main endpoint
 
 `POST /api/v1/downloads`
 
@@ -82,11 +82,11 @@ Payload:
 }
 ```
 
-Resposta:
+Response:
 
-- `200 OK` com o arquivo em stream e `Content-Disposition: attachment`
-- `422` para URL inválida
-- `400` para falhas de download/processamento
+- `200 OK` with the file streamed back and `Content-Disposition: attachment`
+- `422` for an invalid URL
+- `400` for download or processing failures
 
 ## Docker
 
@@ -101,30 +101,30 @@ docker run --rm -p 8000:8000 yt-download-api:local
 
 ### CI
 
-O workflow [ci.yml](/workspace/yt-download-api/.github/workflows/ci.yml) executa:
+The workflow [ci.yml](/workspace/yt-download-api/.github/workflows/ci.yml) runs:
 
-- lint com `ruff`
-- validação sintática com `py_compile`
-- build da imagem Docker
+- lint with `ruff`
+- syntax validation with `py_compile`
+- Docker image build
 
-### Imagem e deploy
+### Image and deployment
 
-O workflow [deploy-image.yml](/workspace/yt-download-api/.github/workflows/deploy-image.yml):
+The workflow [deploy-image.yml](/workspace/yt-download-api/.github/workflows/deploy-image.yml):
 
-- builda a imagem Docker
-- publica no GHCR
-- dispara o webhook do Portainer se `PORTAINER_WEBHOOK_URL` estiver configurado
+- builds the Docker image
+- publishes it to GHCR
+- triggers the Portainer webhook when `PORTAINER_WEBHOOK_URL` is configured
 
-Secrets esperadas no GitHub:
+Expected GitHub secrets:
 
-- `PORTAINER_WEBHOOK_URL`: webhook de atualização do stack no Portainer
+- `PORTAINER_WEBHOOK_URL`: Portainer stack update webhook
 
-O `GITHUB_TOKEN` do próprio Actions é usado para publicar a imagem no GHCR.
+The built-in `GITHUB_TOKEN` from GitHub Actions is used to publish the image to GHCR.
 
 ## Portainer
 
-O arquivo [portainer-stack.yml](/workspace/yt-download-api/deploy/portainer-stack.yml) pode ser usado como stack base no Portainer.
+The file [portainer-stack.yml](/workspace/yt-download-api/deploy/portainer-stack.yml) can be used as the base stack in Portainer.
 
-Exemplo de variável de ambiente do stack:
+Example stack environment variable:
 
 - `GHCR_IMAGE=ghcr.io/josecldjr/yt-download-api:latest`
