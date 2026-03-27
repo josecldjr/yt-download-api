@@ -9,6 +9,10 @@
     {
       "key": "baseUrl",
       "value": "http://localhost:8000"
+    },
+    {
+      "key": "managementSecret",
+      "value": "change-me-in-production"
     }
   ],
   "item": [
@@ -56,6 +60,66 @@
           ]
         },
         "description": "Starts the video download and returns the binary file."
+      },
+      "response": []
+    },
+    {
+      "name": "List Access Tokens",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/access-tokens",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "access-tokens"
+          ]
+        },
+        "description": "Lists all stored access tokens for the management console."
+      },
+      "response": []
+    },
+    {
+      "name": "Create Access Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{managementSecret}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Internal client\",\n  \"description\": \"Main integration token\",\n  \"content\": \"super-secret-token-value\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/admin/access-tokens",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "admin",
+            "access-tokens"
+          ]
+        },
+        "description": "Creates a new encrypted access token record."
       },
       "response": []
     }

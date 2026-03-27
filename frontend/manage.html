@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Management</title>
+    <style>
+      :root {
+        --bg: #efe9df;
+        --panel: rgba(255, 252, 247, 0.96);
+        --panel-strong: #fffdfa;
+        --text: #201b17;
+        --muted: #665d53;
+        --accent: #b9432a;
+        --accent-dark: #8e2f1d;
+        --danger: #ab2d27;
+        --success: #276749;
+        --border: rgba(32, 27, 23, 0.1);
+        --shadow: 0 24px 60px rgba(40, 27, 19, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(185, 67, 42, 0.18), transparent 28%),
+          radial-gradient(circle at top right, rgba(31, 83, 62, 0.12), transparent 24%),
+          linear-gradient(135deg, #f4ead8 0%, #f7f4ed 50%, #eee3d4 100%);
+        padding: 24px;
+      }
+      .shell {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+        display: grid;
+        gap: 20px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(14px);
+      }
+      .hero {
+        padding: 28px 32px;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      h1, h2 { margin: 0; }
+      h1 { font-size: clamp(2rem, 4vw, 3rem); }
+      p { margin: 8px 0 0; color: var(--muted); line-height: 1.55; }
+      .hidden { display: none !important; }
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+        gap: 20px;
+      }
+      .panel-body { padding: 24px; }
+      form { display: grid; gap: 12px; }
+      label { font-size: 0.92rem; font-weight: 600; }
+      input, textarea {
+        width: 100%;
+        border: 1px solid rgba(32, 27, 23, 0.14);
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-size: 0.98rem;
+        outline: none;
+        background: var(--panel-strong);
+      }
+      textarea { min-height: 110px; resize: vertical; }
+      input:focus, textarea:focus {
+        border-color: rgba(185, 67, 42, 0.6);
+        box-shadow: 0 0 0 4px rgba(185, 67, 42, 0.12);
+      }
+      .actions, .toolbar {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      button {
+        border: 0;
+        border-radius: 14px;
+        padding: 13px 16px;
+        font-size: 0.96rem;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, var(--accent), #d45b31);
+        cursor: pointer;
+      }
+      button.secondary {
+        background: linear-gradient(135deg, #685f54, #4f473f);
+      }
+      button.danger {
+        background: linear-gradient(135deg, var(--danger), #8a1f1a);
+      }
+      button:disabled {
+        cursor: wait;
+        opacity: 0.72;
+      }
+      .status {
+        min-height: 24px;
+        color: var(--muted);
+        font-size: 0.94rem;
+      }
+      .status.error { color: var(--danger); }
+      .status.success { color: var(--success); }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        text-align: left;
+        padding: 14px 12px;
+        border-bottom: 1px solid rgba(32, 27, 23, 0.08);
+        vertical-align: top;
+      }
+      th {
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+      }
+      td code {
+        font-size: 0.85rem;
+        background: rgba(32, 27, 23, 0.06);
+        padding: 4px 6px;
+        border-radius: 8px;
+      }
+      .table-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .table-actions button {
+        padding: 9px 11px;
+        font-size: 0.82rem;
+      }
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel hero">
+        <div>
+          <h1>API Management</h1>
+          <p>Manage encrypted access tokens stored by the API. Sign in with the management secret configured in the environment.</p>
+        </div>
+        <div class="toolbar">
+          <button id="logout-button" class="secondary hidden" type="button">Log out</button>
+        </div>
+      </section>
+
+      <section id="login-panel" class="panel">
+        <div class="panel-body">
+          <h2>Management Sign-In</h2>
+          <p>Enter the management password or token configured in <code>MANAGEMENT_SECRET</code>.</p>
+          <form id="login-form">
+            <div>
+              <label for="management-secret">Management secret</label>
+              <input id="management-secret" type="password" required />
+            </div>
+            <div class="actions">
+              <button id="login-button" type="submit">Unlock management</button>
+            </div>
+            <div id="login-status" class="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </section>
+
+      <section id="management-panel" class="grid hidden">
+        <div class="panel">
+          <div class="panel-body">
+            <h2 id="form-title">Create access token</h2>
+            <p>Add a token record or update the selected entry. Token content is encrypted before it is stored in SQLite.</p>
+            <form id="token-form">
+              <input id="token-id" type="hidden" />
+              <div>
+                <label for="token-name">Name</label>
+                <input id="token-name" type="text" maxlength="120" required />
+              </div>
+              <div>
+                <label for="token-description">Description</label>
+                <textarea id="token-description"></textarea>
+              </div>
+              <div>
+                <label for="token-content">Token content</label>
+                <textarea id="token-content" required></textarea>
+              </div>
+              <div class="actions">
+                <button id="save-button" type="submit">Save token</button>
+                <button id="reset-button" class="secondary" type="button">Reset form</button>
+              </div>
+              <div id="form-status" class="status" aria-live="polite"></div>
+            </form>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-body">
+            <h2>Stored access tokens</h2>
+            <p>All rows are decrypted server-side only after successful admin authentication.</p>
+            <div id="table-status" class="status" aria-live="polite"></div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Token</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tokens-table-body">
+                <tr>
+                  <td colspan="4">No access tokens stored yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const ADMIN_API_URL = new URL("/api/v1/admin/access-tokens", window.location.origin).toString();
+      const STORAGE_KEY = "yt_download_api_management_secret";
+
+      const loginPanel = document.getElementById("login-panel");
+      const managementPanel = document.getElementById("management-panel");
+      const logoutButton = document.getElementById("logout-button");
+      const loginForm = document.getElementById("login-form");
+      const loginInput = document.getElementById("management-secret");
+      const loginButton = document.getElementById("login-button");
+      const loginStatus = document.getElementById("login-status");
+
+      const tokenForm = document.getElementById("token-form");
+      const tokenIdInput = document.getElementById("token-id");
+      const tokenNameInput = document.getElementById("token-name");
+      const tokenDescriptionInput = document.getElementById("token-description");
+      const tokenContentInput = document.getElementById("token-content");
+      const formTitle = document.getElementById("form-title");
+      const formStatus = document.getElementById("form-status");
+      const tableStatus = document.getElementById("table-status");
+      const tokensTableBody = document.getElementById("tokens-table-body");
+      const resetButton = document.getElementById("reset-button");
+      const saveButton = document.getElementById("save-button");
+
+      let managementSecret = sessionStorage.getItem(STORAGE_KEY) || "";
+      let currentTokens = [];
+
+      function setStatus(element, message, type = "") {
+        element.textContent = message;
+        element.className = `status ${type}`.trim();
+      }
+
+      function maskToken(value) {
+        if (!value) return "";
+        if (value.length <= 8) return "•".repeat(value.length);
+        return `${value.slice(0, 4)}••••${value.slice(-4)}`;
+      }
+
+      function authHeaders() {
+        return {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${managementSecret}`,
+        };
+      }
+
+      function resetForm() {
+        tokenIdInput.value = "";
+        tokenNameInput.value = "";
+        tokenDescriptionInput.value = "";
+        tokenContentInput.value = "";
+        formTitle.textContent = "Create access token";
+        saveButton.textContent = "Save token";
+        setStatus(formStatus, "");
+      }
+
+      function renderTokens(tokens) {
+        currentTokens = tokens;
+
+        if (!tokens.length) {
+          tokensTableBody.innerHTML = "<tr><td colspan=\"4\">No access tokens stored yet.</td></tr>";
+          return;
+        }
+
+        tokensTableBody.innerHTML = tokens
+          .map((token) => `
+            <tr>
+              <td><strong>${escapeHtml(token.name)}</strong><br /><code>${token.id}</code></td>
+              <td>${escapeHtml(token.description || "No description")}</td>
+              <td><code>${escapeHtml(maskToken(token.content))}</code></td>
+              <td>
+                <div class="table-actions">
+                  <button type="button" class="secondary" data-action="edit" data-id="${token.id}">Edit</button>
+                  <button type="button" class="danger" data-action="delete" data-id="${token.id}">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `)
+          .join("");
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll("\"", "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      async function fetchTokens() {
+        setStatus(tableStatus, "Loading tokens...");
+        const response = await fetch(ADMIN_API_URL, { headers: authHeaders() });
+
+        if (response.status === 401) {
+          throw new Error("Invalid management credentials.");
+        }
+        if (!response.ok) {
+          throw new Error("Failed to load access tokens.");
+        }
+
+        const tokens = await response.json();
+        renderTokens(tokens);
+        setStatus(tableStatus, `${tokens.length} token(s) loaded.`, "success");
+      }
+
+      async function createOrUpdateToken(event) {
+        event.preventDefault();
+
+        const payload = {
+          name: tokenNameInput.value.trim(),
+          description: tokenDescriptionInput.value.trim(),
+          content: tokenContentInput.value.trim(),
+        };
+
+        if (!payload.name || !payload.content) {
+          setStatus(formStatus, "Name and token content are required.", "error");
+          return;
+        }
+
+        const tokenId = tokenIdInput.value.trim();
+        const isEdit = Boolean(tokenId);
+        saveButton.disabled = true;
+        saveButton.textContent = isEdit ? "Saving..." : "Creating...";
+        setStatus(formStatus, isEdit ? "Updating token..." : "Creating token...");
+
+        try {
+          const response = await fetch(isEdit ? `${ADMIN_API_URL}/${tokenId}` : ADMIN_API_URL, {
+            method: isEdit ? "PUT" : "POST",
+            headers: authHeaders(),
+            body: JSON.stringify(payload),
+          });
+
+          if (response.status === 401) {
+            throw new Error("Invalid management credentials.");
+          }
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || "Failed to save access token.");
+          }
+
+          resetForm();
+          await fetchTokens();
+          setStatus(formStatus, isEdit ? "Token updated successfully." : "Token created successfully.", "success");
+        } catch (error) {
+          setStatus(formStatus, error.message, "error");
+        } finally {
+          saveButton.disabled = false;
+          saveButton.textContent = tokenIdInput.value ? "Save changes" : "Save token";
+        }
+      }
+
+      async function deleteToken(tokenId) {
+        const target = currentTokens.find((item) => item.id === tokenId);
+        if (!target) return;
+        if (!confirm(`Delete token "${target.name}"?`)) return;
+
+        setStatus(tableStatus, `Deleting "${target.name}"...`);
+
+        try {
+          const response = await fetch(`${ADMIN_API_URL}/${tokenId}`, {
+            method: "DELETE",
+            headers: authHeaders(),
+          });
+
+          if (response.status === 401) {
+            throw new Error("Invalid management credentials.");
+          }
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.detail || "Failed to delete access token.");
+          }
+
+          if (tokenIdInput.value === tokenId) {
+            resetForm();
+          }
+
+          await fetchTokens();
+          setStatus(tableStatus, `Token "${target.name}" deleted.`, "success");
+        } catch (error) {
+          setStatus(tableStatus, error.message, "error");
+        }
+      }
+
+      function editToken(tokenId) {
+        const token = currentTokens.find((item) => item.id === tokenId);
+        if (!token) return;
+
+        tokenIdInput.value = token.id;
+        tokenNameInput.value = token.name;
+        tokenDescriptionInput.value = token.description || "";
+        tokenContentInput.value = token.content;
+        formTitle.textContent = `Edit token: ${token.name}`;
+        saveButton.textContent = "Save changes";
+        setStatus(formStatus, `Editing token "${token.name}".`);
+        tokenNameInput.focus();
+      }
+
+      async function activateManagement() {
+        loginPanel.classList.add("hidden");
+        managementPanel.classList.remove("hidden");
+        logoutButton.classList.remove("hidden");
+        await fetchTokens();
+      }
+
+      loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const candidate = loginInput.value.trim();
+
+        if (!candidate) {
+          setStatus(loginStatus, "Enter the management secret.", "error");
+          return;
+        }
+
+        managementSecret = candidate;
+        loginButton.disabled = true;
+        loginButton.textContent = "Unlocking...";
+        setStatus(loginStatus, "Validating credentials...");
+
+        try {
+          sessionStorage.setItem(STORAGE_KEY, managementSecret);
+          loginInput.value = "";
+          await activateManagement();
+          setStatus(loginStatus, "");
+        } catch (error) {
+          managementSecret = "";
+          sessionStorage.removeItem(STORAGE_KEY);
+          setStatus(loginStatus, error.message, "error");
+        } finally {
+          loginButton.disabled = false;
+          loginButton.textContent = "Unlock management";
+        }
+      });
+
+      logoutButton.addEventListener("click", () => {
+        managementSecret = "";
+        currentTokens = [];
+        sessionStorage.removeItem(STORAGE_KEY);
+        resetForm();
+        renderTokens([]);
+        setStatus(tableStatus, "");
+        loginPanel.classList.remove("hidden");
+        managementPanel.classList.add("hidden");
+        logoutButton.classList.add("hidden");
+        setStatus(loginStatus, "Signed out successfully.", "success");
+      });
+
+      resetButton.addEventListener("click", resetForm);
+      tokenForm.addEventListener("submit", createOrUpdateToken);
+
+      tokensTableBody.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+        const action = button.dataset.action;
+        const tokenId = button.dataset.id;
+
+        if (action === "edit") editToken(tokenId);
+        if (action === "delete") deleteToken(tokenId);
+      });
+
+      if (managementSecret) {
+        activateManagement().catch(() => {
+          managementSecret = "";
+          sessionStorage.removeItem(STORAGE_KEY);
+          loginPanel.classList.remove("hidden");
+          managementPanel.classList.add("hidden");
+          logoutButton.classList.add("hidden");
+          setStatus(loginStatus, "Stored management credentials are no longer valid.", "error");
+        });
+      }
+    </script>
+  </body>
+  </html>

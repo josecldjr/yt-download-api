@@ -70,6 +70,23 @@ The frontend is already served by the API itself. Open `http://localhost:8000`.
 - OpenAPI JSON: `http://localhost:8000/api-docs/openapi.json`
 - Postman Collection: [yt-download-api.postman_collection.json](/workspace/yt-download-api/docs/postman/yt-download-api.postman_collection.json)
 
+## Management
+
+- Management UI: `http://localhost:8000/manage`
+- Protected by `MANAGEMENT_SECRET`
+- Access tokens are stored in SQLite through SQLAlchemy
+- Token content is encrypted before persistence using `TOKEN_ENCRYPTION_KEY`
+
+Recommended environment variables:
+
+```bash
+export DATABASE_URL="sqlite:///./app.db"
+export MANAGEMENT_SECRET="replace-with-a-strong-secret"
+export TOKEN_ENCRYPTION_KEY="replace-with-a-strong-secret-or-a-valid-fernet-key"
+```
+
+You can also start from [.env.example](/workspace/yt-download-api/.env.example).
+
 ## Main endpoint
 
 `POST /api/v1/downloads`
@@ -128,3 +145,6 @@ The file [portainer-stack.yml](/workspace/yt-download-api/deploy/portainer-stack
 Example stack environment variable:
 
 - `GHCR_IMAGE=ghcr.io/josecldjr/yt-download-api:latest`
+- `DATABASE_URL=sqlite:////app/data/app.db`
+- `MANAGEMENT_SECRET=replace-with-a-strong-secret`
+- `TOKEN_ENCRYPTION_KEY=replace-with-a-strong-secret-or-a-valid-fernet-key`
