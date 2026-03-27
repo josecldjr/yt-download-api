@@ -64,6 +64,12 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 O frontend já é servido pela própria API. Abra `http://localhost:8000`.
 
+## Documentação
+
+- Swagger UI: `http://localhost:8000/api-docs`
+- OpenAPI JSON: `http://localhost:8000/api-docs/openapi.json`
+- Postman Collection: [yt-download-api.postman_collection.json](/workspace/yt-download-api/docs/postman/yt-download-api.postman_collection.json)
+
 ## Endpoint principal
 
 `POST /api/v1/downloads`

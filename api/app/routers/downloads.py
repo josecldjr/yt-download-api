@@ -16,7 +16,55 @@ router = APIRouter(prefix="/downloads", tags=["downloads"])
 downloader_service = YouTubeDownloaderService()
 
 
-@router.post("", response_class=FileResponse)
+@router.post(
+    "",
+    response_class=FileResponse,
+    summary="Baixar vídeo do YouTube",
+    description=(
+        "Recebe uma URL pública do YouTube, valida a entrada, faz o download do vídeo "
+        "e retorna o arquivo com `Content-Disposition: attachment` para disparar o "
+        "download no cliente."
+    ),
+    responses={
+        200: {
+            "description": "Arquivo de vídeo retornado com sucesso.",
+            "content": {
+                "video/mp4": {
+                    "schema": {
+                        "type": "string",
+                        "format": "binary",
+                    }
+                },
+                "application/octet-stream": {
+                    "schema": {
+                        "type": "string",
+                        "format": "binary",
+                    }
+                },
+            },
+        },
+        400: {
+            "description": "Falha ao processar ou baixar o vídeo.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Não foi possível baixar este vídeo no momento."
+                    }
+                }
+            },
+        },
+        422: {
+            "description": "Payload inválido ou URL fora do padrão esperado.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Informe uma URL válida do YouTube."
+                    }
+                }
+            },
+        },
+    },
+)
 async def create_download(
     payload: DownloadRequest, background_tasks: BackgroundTasks
 ) -> FileResponse:

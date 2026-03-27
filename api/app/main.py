@@ -11,10 +11,36 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = BASE_DIR / "frontend"
 INDEX_FILE = FRONTEND_DIR / "index.html"
 
+openapi_tags = [
+    {
+        "name": "health",
+        "description": "Endpoints de verificação de disponibilidade da API.",
+    },
+    {
+        "name": "downloads",
+        "description": "Endpoints para solicitar e baixar vídeos do YouTube.",
+    },
+]
+
 app = FastAPI(
     title=settings.app_name,
     version="1.0.0",
-    description="REST API para download de vídeos do YouTube.",
+    description=(
+        "API REST para download de vídeos do YouTube. "
+        "Recebe uma URL pública, processa o vídeo com yt-dlp e devolve o arquivo "
+        "via stream com headers apropriados para download."
+    ),
+    docs_url="/api-docs",
+    openapi_url="/api-docs/openapi.json",
+    redoc_url=None,
+    openapi_tags=openapi_tags,
+    contact={
+        "name": "Equipe YT Download API",
+        "url": "https://github.com/josecldjr/yt-download-api",
+    },
+    license_info={
+        "name": "Proprietary",
+    },
 )
 
 app.add_middleware(
@@ -27,7 +53,12 @@ app.add_middleware(
 )
 
 
-@app.get("/health")
+@app.get(
+    "/health",
+    tags=["health"],
+    summary="Healthcheck da aplicação",
+    description="Retorna o status da API para uso em monitoração, probes e balanceadores.",
+)
 async def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
 

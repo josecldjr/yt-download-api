@@ -1,0 +1,63 @@
+{
+  "info": {
+    "name": "YT Download API",
+    "_postman_id": "d96816dc-84e5-4a56-8f3c-yt-download-api",
+    "description": "Colecao Postman da YT Download API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    }
+  ],
+  "item": [
+    {
+      "name": "Healthcheck",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "description": "Verifica se a API esta disponivel."
+      },
+      "response": []
+    },
+    {
+      "name": "Download Video",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"url\": \"https://www.youtube.com/watch?v=jNQXAC9IVRw\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/downloads",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "downloads"
+          ]
+        },
+        "description": "Dispara o download do video e retorna o arquivo binario."
+      },
+      "response": []
+    }
+  ]
+}
