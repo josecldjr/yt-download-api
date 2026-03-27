@@ -96,6 +96,23 @@ You can also start from [.env.example](/workspace/yt-download-api/.env.example).
 
 Only set `DATABASE_URL` if you want to override those defaults.
 
+## High-Quality Downloads
+
+The API now exposes the final delivered resolution in response headers, but some YouTube videos still limit anonymous clients to lower-quality progressive formats.
+
+Optional environment variables to unlock higher-quality formats when available:
+
+```bash
+export YOUTUBE_COOKIEFILE="/absolute/path/to/youtube-cookies.txt"
+export YOUTUBE_PO_TOKEN="client.gvs+your-token"
+```
+
+Notes:
+
+- `YOUTUBE_COOKIEFILE` allows yt-dlp to use authenticated YouTube cookies
+- `YOUTUBE_PO_TOKEN` can unlock GVS-protected formats for some clients
+- without these, some videos may still fall back to lower resolutions even when higher resolutions exist in metadata
+
 ## Main endpoint
 
 `POST /api/v1/downloads`
@@ -123,6 +140,13 @@ Supported `quality` values:
 Response:
 
 - `200 OK` with the file streamed back and `Content-Disposition: attachment`
+- final delivered resolution exposed through response headers:
+  - `X-Video-Width`
+  - `X-Video-Height`
+  - `X-Video-Resolution`
+- delivery metadata also exposed through:
+  - `X-Video-Format-Id`
+  - `X-Video-Delivery-Strategy`
 - `401` when the API access token is missing or invalid and authentication is enabled
 - `422` for an invalid URL
 - `400` for download or processing failures

@@ -189,6 +189,10 @@
         return asciiMatch?.[1] || "youtube-video.bin";
       }
 
+      function extractDeliveredResolution(response) {
+        return response.headers.get("X-Video-Resolution");
+      }
+
       function populateQualityOptions(options, defaultQuality) {
         qualitySelect.innerHTML = options
           .map((option) => {
@@ -262,6 +266,7 @@
           throw new Error(errorMessage);
         }
 
+        const deliveredResolution = extractDeliveredResolution(response);
         const blob = await response.blob();
         const filename = extractFilename(response);
         const downloadUrl = URL.createObjectURL(blob);
@@ -274,6 +279,7 @@
         link.remove();
 
         URL.revokeObjectURL(downloadUrl);
+        return deliveredResolution;
       }
 
       form.addEventListener("submit", async (event) => {
@@ -303,8 +309,9 @@
         setStatus("Preparing download...", "");
 
         try {
-          await downloadVideo(url, quality, token);
-          setStatus("Download started successfully.", "success");
+          const deliveredResolution = await downloadVideo(url, quality, token);
+          const resolutionMessage = deliveredResolution ? ` Delivered: ${deliveredResolution}.` : "";
+          setStatus(`Download started successfully.${resolutionMessage}`, "success");
         } catch (error) {
           setStatus(error.message, "error");
           alert(error.message);

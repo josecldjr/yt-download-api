@@ -65,7 +65,16 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["Content-Disposition", "Content-Length", "Content-Type"],
+    expose_headers=[
+        "Content-Disposition",
+        "Content-Length",
+        "Content-Type",
+        "X-Video-Width",
+        "X-Video-Height",
+        "X-Video-Resolution",
+        "X-Video-Format-Id",
+        "X-Video-Delivery-Strategy",
+    ],
 )
 
 

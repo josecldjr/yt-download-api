@@ -31,6 +31,28 @@ downloader_service = YouTubeDownloaderService()
     responses={
         200: {
             "description": "Video file returned successfully.",
+            "headers": {
+                "X-Video-Width": {
+                    "description": "Final delivered video width in pixels.",
+                    "schema": {"type": "integer"},
+                },
+                "X-Video-Height": {
+                    "description": "Final delivered video height in pixels.",
+                    "schema": {"type": "integer"},
+                },
+                "X-Video-Resolution": {
+                    "description": "Final delivered video resolution formatted as WIDTHxHEIGHT.",
+                    "schema": {"type": "string"},
+                },
+                "X-Video-Format-Id": {
+                    "description": "yt-dlp format id or merged format ids used to deliver the final file.",
+                    "schema": {"type": "string"},
+                },
+                "X-Video-Delivery-Strategy": {
+                    "description": "Download strategy that succeeded, such as separate streams or progressive fallback.",
+                    "schema": {"type": "string"},
+                },
+            },
             "content": {
                 "video/mp4": {
                     "schema": {
@@ -110,10 +132,22 @@ async def create_download(
 
     background_tasks.add_task(downloader_service.cleanup, downloaded_video.temp_dir)
     media_type = mimetypes.guess_type(downloaded_video.file_path.name)[0] or "application/octet-stream"
+    response_headers: dict[str, str] = {}
+    if downloaded_video.width is not None:
+        response_headers["X-Video-Width"] = str(downloaded_video.width)
+    if downloaded_video.height is not None:
+        response_headers["X-Video-Height"] = str(downloaded_video.height)
+    if downloaded_video.width is not None and downloaded_video.height is not None:
+        response_headers["X-Video-Resolution"] = f"{downloaded_video.width}x{downloaded_video.height}"
+    if downloaded_video.format_id:
+        response_headers["X-Video-Format-Id"] = downloaded_video.format_id
+    if downloaded_video.delivery_strategy:
+        response_headers["X-Video-Delivery-Strategy"] = downloaded_video.delivery_strategy
 
     return FileResponse(
         path=downloaded_video.file_path,
         filename=downloaded_video.suggested_filename,
         media_type=media_type,
         background=background_tasks,
+        headers=response_headers,
     )

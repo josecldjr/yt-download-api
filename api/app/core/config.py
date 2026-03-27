@@ -15,6 +15,8 @@ class Settings(BaseModel):
     database_url: str
     management_secret: str
     token_encryption_key: str
+    youtube_cookiefile: str | None
+    youtube_po_token: str | None
 
 
 def _derive_fernet_key(secret: str) -> str:
@@ -60,4 +62,6 @@ settings = Settings(
     database_url=os.getenv("DATABASE_URL", _default_database_url()),
     management_secret=management_secret,
     token_encryption_key=_normalize_fernet_key(token_encryption_key),
+    youtube_cookiefile=os.getenv("YOUTUBE_COOKIEFILE") or None,
+    youtube_po_token=os.getenv("YOUTUBE_PO_TOKEN") or None,
 )

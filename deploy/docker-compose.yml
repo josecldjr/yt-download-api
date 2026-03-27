@@ -12,6 +12,8 @@ services:
       REQUEST_TIMEOUT_SECONDS: ${REQUEST_TIMEOUT_SECONDS:-300}
       MANAGEMENT_SECRET: ${MANAGEMENT_SECRET:-change-me-in-production}
       TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-change-me-in-production}
+      YOUTUBE_COOKIEFILE: ${YOUTUBE_COOKIEFILE:-}
+      YOUTUBE_PO_TOKEN: ${YOUTUBE_PO_TOKEN:-}
     volumes:
       - yt-download-api-data:/app/data
 
