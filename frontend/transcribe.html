@@ -381,8 +381,9 @@
           <label for="model">
             Whisper model
             <select id="model">
-              <option value="base">Base</option>
+              <option value="">Use server default</option>
               <option value="tiny">Tiny</option>
+              <option value="base">Base</option>
               <option value="small">Small</option>
               <option value="medium">Medium</option>
               <option value="large-v3">Large v3</option>
@@ -551,7 +552,9 @@
         const formData = new FormData();
         formData.append("file", file);
         formData.append("task", task);
-        formData.append("model", model);
+        if (model) {
+          formData.append("model", model);
+        }
         if (language) {
           formData.append("language", language);
         }
