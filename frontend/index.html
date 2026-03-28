@@ -121,6 +121,45 @@
         font-size: 0.9rem;
         color: var(--muted);
       }
+
+      .explore-panel {
+        margin-top: 24px;
+        display: grid;
+        gap: 12px;
+        padding: 18px;
+        border-radius: 20px;
+        background: rgba(255, 248, 240, 0.9);
+        border: 1px solid rgba(31, 31, 31, 0.08);
+      }
+
+      .explore-copy {
+        margin: 0;
+        font-size: 0.95rem;
+      }
+
+      .explore-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .secondary-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 52px;
+        padding: 0 18px;
+        border-radius: 16px;
+        text-decoration: none;
+        font-weight: 700;
+        color: var(--text);
+        background: rgba(31, 31, 31, 0.06);
+        border: 1px solid rgba(31, 31, 31, 0.08);
+      }
+
+      .secondary-link:hover {
+        background: rgba(31, 31, 31, 0.1);
+      }
     </style>
   </head>
   <body>
@@ -149,10 +188,15 @@
         <div id="status" class="status" aria-live="polite"></div>
       </form>
 
-      <div class="hint">
-        When served by the API, the frontend automatically uses the same origin.
-        Manage stored access tokens at <code>/manage</code>.
-      </div>
+      <section class="explore-panel" aria-label="API exploration">
+        <p class="explore-copy">
+          API-first interface for quick tests. Open the upload transcription page to send audio or video files and inspect timestamps directly in the browser.
+        </p>
+        <div class="explore-actions">
+          <a class="secondary-link" href="/transcribe">Open Transcription Upload</a>
+          <a class="secondary-link" href="/manage">Manage Access Tokens</a>
+        </div>
+      </section>
     </main>
 
     <script>
