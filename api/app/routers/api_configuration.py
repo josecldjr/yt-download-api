@@ -10,6 +10,7 @@ from app.schemas.api_configuration import (
 )
 from app.services.api_configuration import (
     DEFAULT_QUALITY,
+    DEFAULT_MAX_TRANSCRIPTION_UPLOAD_SIZE_MB,
     QUALITY_OPTIONS,
     get_or_create_api_configuration,
 )
@@ -22,11 +23,23 @@ admin_router = APIRouter(
 )
 
 
-def _to_response(require_api_authentication: bool) -> PublicApiConfigurationResponse:
+def _to_public_response(require_api_authentication: bool) -> PublicApiConfigurationResponse:
     return PublicApiConfigurationResponse(
         require_api_authentication=require_api_authentication,
         default_quality=DEFAULT_QUALITY,
         quality_options=QUALITY_OPTIONS,
+    )
+
+
+def _to_admin_response(configuration: object) -> AdminApiConfigurationResponse:
+    return AdminApiConfigurationResponse(
+        require_api_authentication=configuration.require_api_authentication,
+        default_quality=DEFAULT_QUALITY,
+        quality_options=QUALITY_OPTIONS,
+        max_transcription_upload_size_mb=(
+            configuration.max_transcription_upload_size_mb
+            or DEFAULT_MAX_TRANSCRIPTION_UPLOAD_SIZE_MB
+        ),
     )
 
 
@@ -40,7 +53,7 @@ async def get_public_api_configuration(
     db: Session = Depends(get_db_session),
 ) -> PublicApiConfigurationResponse:
     configuration = get_or_create_api_configuration(db)
-    return _to_response(configuration.require_api_authentication)
+    return _to_public_response(configuration.require_api_authentication)
 
 
 @admin_router.get(
@@ -53,7 +66,7 @@ async def get_admin_api_configuration(
     db: Session = Depends(get_db_session),
 ) -> AdminApiConfigurationResponse:
     configuration = get_or_create_api_configuration(db)
-    return AdminApiConfigurationResponse(**_to_response(configuration.require_api_authentication).model_dump())
+    return _to_admin_response(configuration)
 
 
 @admin_router.put(
@@ -68,6 +81,8 @@ async def update_admin_api_configuration(
 ) -> AdminApiConfigurationResponse:
     configuration = get_or_create_api_configuration(db)
     configuration.require_api_authentication = payload.require_api_authentication
+    if payload.max_transcription_upload_size_mb is not None:
+        configuration.max_transcription_upload_size_mb = payload.max_transcription_upload_size_mb
     db.commit()
     db.refresh(configuration)
-    return AdminApiConfigurationResponse(**_to_response(configuration.require_api_authentication).model_dump())
+    return _to_admin_response(configuration)

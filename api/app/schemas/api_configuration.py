@@ -13,13 +13,22 @@ class PublicApiConfigurationResponse(BaseModel):
 
 
 class AdminApiConfigurationResponse(PublicApiConfigurationResponse):
-    pass
+    max_transcription_upload_size_mb: int = Field(
+        ...,
+        description="Maximum allowed file size in megabytes for transcription uploads.",
+    )
 
 
 class AdminApiConfigurationUpdate(BaseModel):
     require_api_authentication: bool = Field(
         ...,
         description="Whether clients must send a Bearer token to download videos.",
+    )
+    max_transcription_upload_size_mb: int | None = Field(
+        default=None,
+        ge=1,
+        le=10240,
+        description="Maximum allowed file size in megabytes for transcription uploads.",
     )
 
 
