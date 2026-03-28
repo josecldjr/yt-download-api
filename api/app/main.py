@@ -13,11 +13,13 @@ from app.routers.admin_tokens import router as admin_tokens_router
 from app.routers.api_configuration import admin_router as admin_api_configuration_router
 from app.routers.api_configuration import router as api_configuration_router
 from app.routers.downloads import router as downloads_router
+from app.routers.transcriptions import router as transcriptions_router
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = BASE_DIR / "frontend"
 INDEX_FILE = FRONTEND_DIR / "index.html"
 MANAGE_FILE = FRONTEND_DIR / "manage.html"
+TRANSCRIBE_FILE = FRONTEND_DIR / "transcribe.html"
 
 openapi_tags = [
     {
@@ -27,6 +29,10 @@ openapi_tags = [
     {
         "name": "downloads",
         "description": "Endpoints to request and download YouTube videos.",
+    },
+    {
+        "name": "transcriptions",
+        "description": "Endpoints to transcribe YouTube audio using faster-whisper.",
     },
     {
         "name": "admin",
@@ -127,7 +133,25 @@ async def serve_management_page_index() -> FileResponse:
     return await serve_management_page()
 
 
+@app.get("/transcribe", include_in_schema=False)
+async def serve_transcription_page() -> FileResponse:
+    return FileResponse(
+        TRANSCRIBE_FILE,
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
+
+
+@app.get("/transcribe.html", include_in_schema=False)
+async def serve_transcription_page_index() -> FileResponse:
+    return await serve_transcription_page()
+
+
 app.include_router(downloads_router, prefix=settings.api_prefix)
+app.include_router(transcriptions_router, prefix=settings.api_prefix)
 app.include_router(admin_tokens_router, prefix=settings.api_prefix)
 app.include_router(api_configuration_router, prefix=settings.api_prefix)
 app.include_router(admin_api_configuration_router, prefix=settings.api_prefix)

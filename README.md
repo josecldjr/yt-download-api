@@ -1,6 +1,7 @@
 # YT Download API
 
 Application composed of a FastAPI REST API and a static HTML frontend for downloading YouTube videos.
+It now also exposes a CPU-based transcription endpoint powered by `faster-whisper`.
 
 ## Structure
 
@@ -44,6 +45,8 @@ source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+The first transcription request can take longer because `faster-whisper` may download the configured model.
 
 ### 3. Start the API
 
@@ -113,6 +116,26 @@ Notes:
 - `YOUTUBE_PO_TOKEN` can unlock GVS-protected formats for some clients
 - without these, some videos may still fall back to lower resolutions even when higher resolutions exist in metadata
 
+## Faster-Whisper on CPU
+
+The API exposes a transcription endpoint that runs `faster-whisper` on CPU.
+
+Recommended environment variables:
+
+```bash
+export FASTER_WHISPER_MODEL="base"
+export FASTER_WHISPER_DEVICE="cpu"
+export FASTER_WHISPER_COMPUTE_TYPE="int8"
+export FASTER_WHISPER_CPU_THREADS="4"
+```
+
+Notes:
+
+- keep `FASTER_WHISPER_DEVICE=cpu` to force CPU-only inference
+- `FASTER_WHISPER_COMPUTE_TYPE=int8` usually gives the best CPU tradeoff
+- larger models improve quality but increase startup time, RAM use, and inference time
+- uploaded media is normalized with `ffmpeg` to mono 16 kHz WAV before inference
+
 ## Main endpoint
 
 `POST /api/v1/downloads`
@@ -150,6 +173,54 @@ Response:
 - `401` when the API access token is missing or invalid and authentication is enabled
 - `422` for an invalid URL
 - `400` for download or processing failures
+
+## Transcription endpoint
+
+`POST /api/v1/transcriptions/faster-whisper`
+
+Payload:
+
+```json
+{
+  "url": "https://www.youtube.com/watch?v=VIDEO_ID",
+  "language": "pt",
+  "task": "transcribe"
+}
+```
+
+Response:
+
+- `200 OK` with JSON transcription output
+- returns `text`, `language`, `duration`, `model`, `device`, `compute_type`, and `segments`
+- `401` when the API access token is missing or invalid and authentication is enabled
+- `422` for an invalid URL
+- `400` for audio extraction or transcription failures
+
+## Upload transcription endpoint
+
+`POST /api/v1/transcriptions/faster-whisper/upload`
+
+Send `multipart/form-data` with:
+
+- `file`: audio or video file
+- `language`: optional source language like `pt` or `en`
+- `task`: `transcribe` or `translate`
+
+Example:
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/transcriptions/faster-whisper/upload" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@/path/to/audio-or-video.mp4" \
+  -F "language=pt" \
+  -F "task=translate"
+```
+
+Response:
+
+- `200 OK` with `text` and `segments`
+- each segment includes `start`, `end`, and `text`
+- `task=translate` returns English text when the source audio is another language
 
 ## Public settings endpoint
 

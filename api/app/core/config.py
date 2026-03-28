@@ -17,6 +17,10 @@ class Settings(BaseModel):
     token_encryption_key: str
     youtube_cookiefile: str | None
     youtube_po_token: str | None
+    faster_whisper_model: str
+    faster_whisper_device: str
+    faster_whisper_compute_type: str
+    faster_whisper_cpu_threads: int
 
 
 def _derive_fernet_key(secret: str) -> str:
@@ -64,4 +68,8 @@ settings = Settings(
     token_encryption_key=_normalize_fernet_key(token_encryption_key),
     youtube_cookiefile=os.getenv("YOUTUBE_COOKIEFILE") or None,
     youtube_po_token=os.getenv("YOUTUBE_PO_TOKEN") or None,
+    faster_whisper_model=os.getenv("FASTER_WHISPER_MODEL", "base"),
+    faster_whisper_device=os.getenv("FASTER_WHISPER_DEVICE", "cpu"),
+    faster_whisper_compute_type=os.getenv("FASTER_WHISPER_COMPUTE_TYPE", "int8"),
+    faster_whisper_cpu_threads=int(os.getenv("FASTER_WHISPER_CPU_THREADS", "0")),
 )

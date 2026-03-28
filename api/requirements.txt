@@ -4,3 +4,5 @@ yt-dlp
 imageio-ffmpeg
 sqlalchemy
 cryptography
+faster-whisper
+python-multipart

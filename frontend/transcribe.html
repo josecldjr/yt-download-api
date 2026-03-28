@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transcription Explorer</title>
+    <style>
+      :root {
+        --bg: #ece6db;
+        --panel: rgba(255, 251, 245, 0.94);
+        --panel-strong: #fffaf2;
+        --text: #201b16;
+        --muted: #6f6559;
+        --accent: #9a3412;
+        --accent-soft: #f6d8c5;
+        --line: rgba(32, 27, 22, 0.1);
+        --success: #245c3c;
+        --error: #a92f1c;
+        --shadow: 0 28px 80px rgba(39, 24, 11, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(154, 52, 18, 0.16), transparent 28%),
+          radial-gradient(circle at bottom right, rgba(34, 92, 60, 0.12), transparent 22%),
+          linear-gradient(135deg, #e8dfd0 0%, #f7f2ea 52%, #ebe2d7 100%);
+        padding: 28px;
+      }
+
+      .shell {
+        width: min(1180px, 100%);
+        margin: 0 auto;
+        display: grid;
+        gap: 24px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 14px;
+      }
+
+      .hero-top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background: rgba(255, 250, 242, 0.75);
+        border: 1px solid rgba(32, 27, 22, 0.08);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.4rem, 5vw, 4.5rem);
+        line-height: 0.98;
+        max-width: 10ch;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 70ch;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .top-links {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .ghost-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 16px;
+        border-radius: 14px;
+        text-decoration: none;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid var(--line);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .controls {
+        padding: 24px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .section-title {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+
+      .section-copy {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 0.95rem;
+      }
+
+      .dropzone {
+        display: grid;
+        gap: 12px;
+        padding: 20px;
+        border-radius: 22px;
+        border: 1.5px dashed rgba(154, 52, 18, 0.35);
+        background: linear-gradient(180deg, rgba(255, 247, 239, 0.95), rgba(248, 238, 228, 0.9));
+      }
+
+      .dropzone strong {
+        font-size: 1rem;
+      }
+
+      .dropzone span {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+
+      input,
+      select {
+        width: 100%;
+        border: 1px solid rgba(32, 27, 22, 0.12);
+        border-radius: 16px;
+        padding: 14px 16px;
+        font-size: 1rem;
+        background: var(--panel-strong);
+        color: var(--text);
+        outline: none;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: rgba(154, 52, 18, 0.55);
+        box-shadow: 0 0 0 4px rgba(154, 52, 18, 0.1);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      input[type="file"] {
+        padding: 12px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 16px;
+        min-height: 54px;
+        padding: 0 18px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(135deg, #9a3412, #c25122);
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.2s ease;
+      }
+
+      button:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.75;
+      }
+
+      .status {
+        min-height: 24px;
+        margin: 0;
+        font-size: 0.94rem;
+      }
+
+      .status.success {
+        color: var(--success);
+      }
+
+      .status.error {
+        color: var(--error);
+      }
+
+      .results {
+        padding: 24px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .metric {
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(255, 248, 240, 0.9);
+        border: 1px solid var(--line);
+      }
+
+      .metric span {
+        display: block;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .metric strong {
+        font-size: 1rem;
+      }
+
+      .result-block {
+        display: grid;
+        gap: 10px;
+      }
+
+      .result-block h2 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .transcript-text {
+        margin: 0;
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(255, 250, 244, 0.92);
+        border: 1px solid var(--line);
+        line-height: 1.7;
+        white-space: pre-wrap;
+      }
+
+      .segments {
+        display: grid;
+        gap: 10px;
+        max-height: 560px;
+        overflow: auto;
+        padding-right: 4px;
+      }
+
+      .segment {
+        display: grid;
+        gap: 8px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: rgba(255, 250, 244, 0.92);
+        border: 1px solid var(--line);
+      }
+
+      .segment-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .segment-text {
+        margin: 0;
+        line-height: 1.6;
+      }
+
+      .empty {
+        padding: 22px;
+        border-radius: 22px;
+        border: 1px dashed rgba(32, 27, 22, 0.16);
+        color: var(--muted);
+        background: rgba(255, 251, 246, 0.72);
+      }
+
+      @media (max-width: 960px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .summary-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 18px;
+        }
+
+        .summary-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-top">
+          <span class="eyebrow">API Exploration</span>
+          <div class="top-links">
+            <a class="ghost-link" href="/">Back to Downloads</a>
+            <a class="ghost-link" href="/manage">Manage Tokens</a>
+          </div>
+        </div>
+        <h1>Upload media, inspect timestamps, test the transcription API.</h1>
+        <p>
+          This page is intentionally lightweight and API-first. Send an audio or video file to the upload transcription endpoint, choose whether you want transcription or translation, and inspect the returned payload in a readable layout.
+        </p>
+      </section>
+
+      <section class="layout">
+        <form id="transcription-form" class="panel controls">
+          <div>
+            <h2 class="section-title">Request</h2>
+            <p class="section-copy">
+              Uses <code>POST /api/v1/transcriptions/faster-whisper/upload</code> with <code>multipart/form-data</code>.
+            </p>
+          </div>
+
+          <div id="token-field">
+            <label for="api-token">API access token
+              <input id="api-token" type="password" placeholder="Paste your API access token" />
+            </label>
+          </div>
+
+          <div class="dropzone">
+            <strong>Select audio or video</strong>
+            <span>Accepted by the backend as uploaded media, then normalized to mono 16 kHz WAV before inference.</span>
+            <input id="media-file" type="file" accept="audio/*,video/*" required />
+          </div>
+
+          <label for="task">
+            Task
+            <select id="task">
+              <option value="transcribe">Transcribe</option>
+              <option value="translate">Translate to English</option>
+            </select>
+          </label>
+
+          <label for="language">
+            Source language
+            <input id="language" type="text" placeholder="Optional, e.g. pt, en, es" />
+          </label>
+
+          <button id="submit-button" type="submit">Run Transcription</button>
+          <p id="status" class="status" aria-live="polite"></p>
+        </form>
+
+        <section class="panel results">
+          <div>
+            <h2 class="section-title">Response</h2>
+            <p class="section-copy">
+              Focused on payload inspection rather than polished end-user playback. The goal is to make testing fast.
+            </p>
+          </div>
+
+          <div id="empty-state" class="empty">
+            No transcription yet. Upload a file and run the request to inspect the returned text and timestamps.
+          </div>
+
+          <div id="results-content" class="hidden">
+            <div class="summary-grid">
+              <div class="metric">
+                <span>Language</span>
+                <strong id="result-language">-</strong>
+              </div>
+              <div class="metric">
+                <span>Duration</span>
+                <strong id="result-duration">-</strong>
+              </div>
+              <div class="metric">
+                <span>Model</span>
+                <strong id="result-model">-</strong>
+              </div>
+              <div class="metric">
+                <span>Compute</span>
+                <strong id="result-compute">-</strong>
+              </div>
+            </div>
+
+            <div class="result-block">
+              <h2>Full Text</h2>
+              <p id="result-text" class="transcript-text"></p>
+            </div>
+
+            <div class="result-block">
+              <h2>Segments</h2>
+              <div id="segments" class="segments"></div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const API_URL = new URL("/api/v1/transcriptions/faster-whisper/upload", window.location.origin).toString();
+      const PUBLIC_SETTINGS_URL = new URL("/api/v1/settings/public", window.location.origin).toString();
+      const TOKEN_STORAGE_KEY = "yt_download_api_access_token";
+
+      const form = document.getElementById("transcription-form");
+      const tokenField = document.getElementById("token-field");
+      const tokenInput = document.getElementById("api-token");
+      const fileInput = document.getElementById("media-file");
+      const taskInput = document.getElementById("task");
+      const languageInput = document.getElementById("language");
+      const button = document.getElementById("submit-button");
+      const status = document.getElementById("status");
+      const emptyState = document.getElementById("empty-state");
+      const resultsContent = document.getElementById("results-content");
+      const resultLanguage = document.getElementById("result-language");
+      const resultDuration = document.getElementById("result-duration");
+      const resultModel = document.getElementById("result-model");
+      const resultCompute = document.getElementById("result-compute");
+      const resultText = document.getElementById("result-text");
+      const segmentsContainer = document.getElementById("segments");
+
+      let requireApiAuthentication = true;
+      tokenInput.value = sessionStorage.getItem(TOKEN_STORAGE_KEY) || "";
+
+      function setStatus(message, type = "") {
+        status.textContent = message;
+        status.className = `status ${type}`.trim();
+      }
+
+      function formatSeconds(value) {
+        const total = Math.max(0, Math.floor(Number(value) || 0));
+        const hours = Math.floor(total / 3600);
+        const minutes = Math.floor((total % 3600) / 60);
+        const seconds = total % 60;
+
+        if (hours > 0) {
+          return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        }
+
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      }
+
+      function renderResults(payload) {
+        emptyState.classList.add("hidden");
+        resultsContent.classList.remove("hidden");
+        resultLanguage.textContent = payload.language || "-";
+        resultDuration.textContent = formatSeconds(payload.duration);
+        resultModel.textContent = payload.model || "-";
+        resultCompute.textContent = `${payload.device || "-"} / ${payload.compute_type || "-"}`;
+        resultText.textContent = payload.text || "";
+
+        segmentsContainer.replaceChildren(
+          ...(payload.segments || []).map((segment) => {
+            const article = document.createElement("article");
+            article.className = "segment";
+
+            const head = document.createElement("div");
+            head.className = "segment-head";
+
+            const id = document.createElement("strong");
+            id.textContent = `#${segment.id}`;
+
+            const time = document.createElement("span");
+            time.textContent = `${formatSeconds(segment.start)} -> ${formatSeconds(segment.end)}`;
+
+            const text = document.createElement("p");
+            text.className = "segment-text";
+            text.textContent = segment.text || "";
+
+            head.append(id, time);
+            article.append(head, text);
+            return article;
+          }),
+        );
+      }
+
+      function syncAuthenticationField() {
+        tokenField.classList.toggle("hidden", !requireApiAuthentication);
+        tokenInput.required = requireApiAuthentication;
+        if (!requireApiAuthentication) {
+          tokenInput.value = "";
+        }
+      }
+
+      async function loadPublicConfiguration() {
+        try {
+          const response = await fetch(PUBLIC_SETTINGS_URL);
+          if (!response.ok) {
+            throw new Error("Failed to load API settings.");
+          }
+
+          const configuration = await response.json();
+          requireApiAuthentication = Boolean(configuration.require_api_authentication);
+          syncAuthenticationField();
+        } catch (error) {
+          requireApiAuthentication = true;
+          syncAuthenticationField();
+          setStatus(error.message, "error");
+        }
+      }
+
+      async function submitTranscription(file, language, task, token) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("task", task);
+        if (language) {
+          formData.append("language", language);
+        }
+
+        const headers = {};
+        if (requireApiAuthentication) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers,
+          body: formData,
+        });
+
+        if (!response.ok) {
+          let errorMessage = "Failed to transcribe the uploaded media.";
+          try {
+            const errorData = await response.json();
+            if (errorData?.detail) {
+              errorMessage = errorData.detail;
+            }
+          } catch (_) {
+            // Keep fallback message.
+          }
+          throw new Error(errorMessage);
+        }
+
+        return response.json();
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const file = fileInput.files?.[0];
+        const token = tokenInput.value.trim();
+        const language = languageInput.value.trim();
+        const task = taskInput.value;
+
+        if (!file) {
+          alert("Select an audio or video file.");
+          return;
+        }
+
+        if (requireApiAuthentication && !token) {
+          alert("Enter a valid API access token.");
+          return;
+        }
+
+        if (requireApiAuthentication) {
+          sessionStorage.setItem(TOKEN_STORAGE_KEY, token);
+        } else {
+          sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+        }
+
+        button.disabled = true;
+        button.textContent = "Processing...";
+        setStatus("Uploading media and waiting for transcription...", "");
+
+        try {
+          const payload = await submitTranscription(file, language, task, token);
+          renderResults(payload);
+          setStatus("Transcription completed successfully.", "success");
+        } catch (error) {
+          setStatus(error.message, "error");
+          alert(error.message);
+        } finally {
+          button.disabled = false;
+          button.textContent = "Run Transcription";
+        }
+      });
+
+      loadPublicConfiguration();
+    </script>
+  </body>
+</html>
