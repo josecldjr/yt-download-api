@@ -13,7 +13,7 @@ from app.schemas.transcription import (
     TranscriptionSegment,
     TranscriptionTask,
 )
-from app.services.api_configuration import get_or_create_api_configuration
+from app.services.api_configuration import get_max_transcription_upload_size_bytes
 from app.services.faster_whisper_transcriber import (
     FasterWhisperTranscriptionException,
     FasterWhisperTranscriptionService,
@@ -147,8 +147,7 @@ async def create_faster_whisper_upload_transcription(
     _: object = Depends(require_api_access_token),
     db: Session = Depends(get_db_session),
 ) -> TranscriptionResponse:
-    configuration = get_or_create_api_configuration(db)
-    max_size_bytes = configuration.max_transcription_upload_size_mb * 1024 * 1024
+    max_size_bytes = get_max_transcription_upload_size_bytes(db)
     suffix = Path(file.filename or "upload.bin").suffix
     temp_upload_dir = Path(tempfile.mkdtemp(prefix="yt-upload-")).resolve()
     temp_upload_path = temp_upload_dir / f"source{suffix}"

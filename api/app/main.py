@@ -9,6 +9,7 @@ from app.db.base import Base
 from app.db.session import engine
 from app.models.access_token import AccessToken  # noqa: F401
 from app.models.api_configuration import ApiConfiguration  # noqa: F401
+from app.middleware.transcription_upload_limit import TranscriptionUploadLimitMiddleware
 from app.routers.admin_tokens import router as admin_tokens_router
 from app.routers.api_configuration import admin_router as admin_api_configuration_router
 from app.routers.api_configuration import router as api_configuration_router
@@ -83,6 +84,7 @@ app.add_middleware(
         "X-Video-Delivery-Strategy",
     ],
 )
+app.add_middleware(TranscriptionUploadLimitMiddleware)
 
 
 @app.on_event("startup")

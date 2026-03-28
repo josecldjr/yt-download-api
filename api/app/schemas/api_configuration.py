@@ -24,8 +24,8 @@ class AdminApiConfigurationUpdate(BaseModel):
         ...,
         description="Whether clients must send a Bearer token to download videos.",
     )
-    max_transcription_upload_size_mb: int = Field(
-        ...,
+    max_transcription_upload_size_mb: int | None = Field(
+        default=None,
         ge=1,
         le=10240,
         description="Maximum allowed file size in megabytes for transcription uploads.",

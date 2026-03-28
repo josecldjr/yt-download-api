@@ -81,7 +81,8 @@ async def update_admin_api_configuration(
 ) -> AdminApiConfigurationResponse:
     configuration = get_or_create_api_configuration(db)
     configuration.require_api_authentication = payload.require_api_authentication
-    configuration.max_transcription_upload_size_mb = payload.max_transcription_upload_size_mb
+    if payload.max_transcription_upload_size_mb is not None:
+        configuration.max_transcription_upload_size_mb = payload.max_transcription_upload_size_mb
     db.commit()
     db.refresh(configuration)
     return _to_admin_response(configuration)
