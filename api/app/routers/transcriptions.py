@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 
 from app.dependencies.auth import require_api_access_token
 from app.schemas.transcription import (
-    FileTranscriptionRequest,
     TranscriptionRequest,
     TranscriptionResponse,
     TranscriptionSegment,
+    TranscriptionTask,
 )
 from app.services.faster_whisper_transcriber import (
     FasterWhisperTranscriptionException,
@@ -112,11 +112,9 @@ async def create_faster_whisper_transcription(
 async def create_faster_whisper_upload_transcription(
     file: UploadFile = File(..., description="Audio or video file to transcribe."),
     language: str | None = Form(default=None),
-    task: str = Form(default="transcribe"),
+    task: TranscriptionTask = Form(default="transcribe"),
     _: object = Depends(require_api_access_token),
 ) -> TranscriptionResponse:
-    payload = FileTranscriptionRequest(language=language, task=task)
-
     suffix = Path(file.filename or "upload.bin").suffix
     temp_upload_dir = Path(tempfile.mkdtemp(prefix="yt-upload-")).resolve()
     temp_upload_path = temp_upload_dir / f"source{suffix}"
@@ -127,8 +125,8 @@ async def create_faster_whisper_upload_transcription(
 
         result = transcription_service.transcribe_uploaded_file(
             temp_upload_path,
-            language=payload.language,
-            task=payload.task,
+            language=language,
+            task=task,
         )
     except FasterWhisperTranscriptionException as exc:
         raise HTTPException(

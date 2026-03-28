@@ -3,6 +3,9 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
+TranscriptionTask = Literal["transcribe", "translate"]
+
+
 class TranscriptionRequest(BaseModel):
     url: str = Field(
         ...,
@@ -16,7 +19,7 @@ class TranscriptionRequest(BaseModel):
         description="Optional source language code such as en, pt, or es. If omitted, the model will auto-detect.",
         examples=["pt", "en"],
     )
-    task: Literal["transcribe", "translate"] = Field(
+    task: TranscriptionTask = Field(
         default="transcribe",
         description="Whether to return speech in the original language or translate it to English.",
         examples=["transcribe", "translate"],
@@ -40,17 +43,4 @@ class TranscriptionResponse(BaseModel):
     segments: list[TranscriptionSegment] = Field(
         default_factory=list,
         description="Timestamped transcript segments.",
-    )
-
-
-class FileTranscriptionRequest(BaseModel):
-    language: str | None = Field(
-        default=None,
-        description="Optional source language code such as en, pt, or es. If omitted, the model will auto-detect.",
-        examples=["pt", "en"],
-    )
-    task: Literal["transcribe", "translate"] = Field(
-        default="transcribe",
-        description="Whether to return speech in the original language or translate it to English.",
-        examples=["transcribe", "translate"],
     )
