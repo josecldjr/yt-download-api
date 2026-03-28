@@ -135,6 +135,7 @@ Notes:
 - `FASTER_WHISPER_COMPUTE_TYPE=int8` usually gives the best CPU tradeoff
 - larger models improve quality but increase startup time, RAM use, and inference time
 - uploaded media is normalized with `ffmpeg` to mono 16 kHz WAV before inference
+- the default maximum upload size for transcription media is 200 MB and can be changed from `/manage`
 
 ## Main endpoint
 
@@ -221,6 +222,7 @@ Response:
 - `200 OK` with `text` and `segments`
 - each segment includes `start`, `end`, and `text`
 - `task=translate` returns English text when the source audio is another language
+- `413 Payload Too Large` when the uploaded file exceeds the configured management limit
 
 ## Public settings endpoint
 

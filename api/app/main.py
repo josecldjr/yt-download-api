@@ -14,6 +14,7 @@ from app.routers.api_configuration import admin_router as admin_api_configuratio
 from app.routers.api_configuration import router as api_configuration_router
 from app.routers.downloads import router as downloads_router
 from app.routers.transcriptions import router as transcriptions_router
+from app.services.api_configuration import ensure_api_configuration_schema
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 FRONTEND_DIR = BASE_DIR / "frontend"
@@ -87,6 +88,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def initialize_database() -> None:
     Base.metadata.create_all(bind=engine)
+    ensure_api_configuration_schema(engine)
 
 
 @app.get(
