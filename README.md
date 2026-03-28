@@ -123,7 +123,7 @@ The API exposes a transcription endpoint that runs `faster-whisper` on CPU.
 Recommended environment variables:
 
 ```bash
-export FASTER_WHISPER_MODEL="base"
+export FASTER_WHISPER_MODEL="tiny"
 export FASTER_WHISPER_DEVICE="cpu"
 export FASTER_WHISPER_COMPUTE_TYPE="int8"
 export FASTER_WHISPER_CPU_THREADS="4"
@@ -133,6 +133,7 @@ Notes:
 
 - keep `FASTER_WHISPER_DEVICE=cpu` to force CPU-only inference
 - `FASTER_WHISPER_COMPUTE_TYPE=int8` usually gives the best CPU tradeoff
+- the backend default model is `tiny` unless `FASTER_WHISPER_MODEL` overrides it
 - larger models improve quality but increase startup time, RAM use, and inference time
 - uploaded media is normalized with `ffmpeg` to mono 16 kHz WAV before inference
 - the default maximum upload size for transcription media is 200 MB and can be changed from `/manage`
@@ -185,7 +186,8 @@ Payload:
 {
   "url": "https://www.youtube.com/watch?v=VIDEO_ID",
   "language": "pt",
-  "task": "transcribe"
+  "task": "transcribe",
+  "model": "tiny"
 }
 ```
 
@@ -193,6 +195,7 @@ Response:
 
 - `200 OK` with JSON transcription output
 - returns `text`, `language`, `duration`, `model`, `device`, `compute_type`, and `segments`
+- request can optionally choose the faster-whisper model with `model`; when omitted, the backend uses its configured default
 - `401` when the API access token is missing or invalid and authentication is enabled
 - `422` for an invalid URL
 - `400` for audio extraction or transcription failures
@@ -206,6 +209,7 @@ Send `multipart/form-data` with:
 - `file`: audio or video file
 - `language`: optional source language like `pt` or `en`
 - `task`: `transcribe` or `translate`
+- `model`: optional model such as `tiny`, `base`, `small`, `medium`, or `large-v3`; omit it to use the backend default
 
 Example:
 

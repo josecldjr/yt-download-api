@@ -12,6 +12,7 @@ from app.schemas.transcription import (
     TranscriptionResponse,
     TranscriptionSegment,
     TranscriptionTask,
+    WhisperModelOption,
 )
 from app.services.api_configuration import get_max_transcription_upload_size_bytes
 from app.services.faster_whisper_transcriber import (
@@ -106,6 +107,7 @@ async def create_faster_whisper_transcription(
             payload.url,
             language=payload.language,
             task=payload.task,
+            model_name=payload.model,
         )
     except FasterWhisperTranscriptionException as exc:
         raise HTTPException(
@@ -144,6 +146,7 @@ async def create_faster_whisper_upload_transcription(
     file: UploadFile = File(..., description="Audio or video file to transcribe."),
     language: str | None = Form(default=None),
     task: TranscriptionTask = Form(default="transcribe"),
+    model: WhisperModelOption | None = Form(default=None),
     _: object = Depends(require_api_access_token),
     db: Session = Depends(get_db_session),
 ) -> TranscriptionResponse:
@@ -163,6 +166,7 @@ async def create_faster_whisper_upload_transcription(
             temp_upload_path,
             language=language,
             task=task,
+            model_name=model,
         )
     except FasterWhisperTranscriptionException as exc:
         raise HTTPException(

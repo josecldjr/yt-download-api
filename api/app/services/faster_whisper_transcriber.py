@@ -39,7 +39,7 @@ class TranscriptionResult:
 
 class FasterWhisperTranscriptionService:
     def __init__(self) -> None:
-        self._model: WhisperModel | None = None
+        self._models: dict[str, WhisperModel] = {}
 
     def transcribe_youtube_url(
         self,
@@ -47,6 +47,7 @@ class FasterWhisperTranscriptionService:
         *,
         language: str | None,
         task: str,
+        model_name: str | None,
     ) -> TranscriptionResult:
         temp_dir = Path(tempfile.mkdtemp(prefix=settings.temp_dir_prefix, dir=None)).resolve()
 
@@ -57,6 +58,7 @@ class FasterWhisperTranscriptionService:
                 prepared_audio,
                 language=language,
                 task=task,
+                model_name=model_name,
             )
         except DownloadError as exc:
             raise FasterWhisperTranscriptionException(
@@ -77,6 +79,7 @@ class FasterWhisperTranscriptionService:
         *,
         language: str | None,
         task: str,
+        model_name: str | None,
     ) -> TranscriptionResult:
         temp_dir = Path(tempfile.mkdtemp(prefix=settings.temp_dir_prefix, dir=None)).resolve()
 
@@ -88,6 +91,7 @@ class FasterWhisperTranscriptionService:
                 prepared_audio,
                 language=language,
                 task=task,
+                model_name=model_name,
             )
         except FasterWhisperTranscriptionException:
             raise
@@ -107,8 +111,10 @@ class FasterWhisperTranscriptionService:
         *,
         language: str | None,
         task: str,
+        model_name: str | None,
     ) -> TranscriptionResult:
-        model = self._get_model()
+        selected_model_name = model_name or settings.faster_whisper_model
+        model = self._get_model(selected_model_name)
         segments, info = model.transcribe(
             str(audio_file),
             language=language,
@@ -132,7 +138,7 @@ class FasterWhisperTranscriptionService:
             ).strip(),
             language=info.language or language or "unknown",
             duration=info.duration or 0.0,
-            model=settings.faster_whisper_model,
+            model=selected_model_name,
             device=settings.faster_whisper_device,
             compute_type=settings.faster_whisper_compute_type,
             segments=normalized_segments,
@@ -172,13 +178,13 @@ class FasterWhisperTranscriptionService:
 
         return output_file
 
-    def _get_model(self) -> WhisperModel:
+    def _get_model(self, model_name: str) -> WhisperModel:
         if settings.faster_whisper_device != "cpu":
             raise FasterWhisperTranscriptionException(
                 "This endpoint is configured to run only with CPU. Set FASTER_WHISPER_DEVICE=cpu."
             )
 
-        if self._model is None:
+        if model_name not in self._models:
             model_kwargs: dict[str, object] = {
                 "device": settings.faster_whisper_device,
                 "compute_type": settings.faster_whisper_compute_type,
@@ -186,12 +192,12 @@ class FasterWhisperTranscriptionService:
             if settings.faster_whisper_cpu_threads > 0:
                 model_kwargs["cpu_threads"] = settings.faster_whisper_cpu_threads
 
-            self._model = WhisperModel(
-                settings.faster_whisper_model,
+            self._models[model_name] = WhisperModel(
+                model_name,
                 **model_kwargs,
             )
 
-        return self._model
+        return self._models[model_name]
 
     def _resolve_ffmpeg_path(self) -> str | None:
         system_ffmpeg = shutil.which("ffmpeg")
