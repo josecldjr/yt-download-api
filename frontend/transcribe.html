@@ -378,6 +378,17 @@
             </select>
           </label>
 
+          <label for="model">
+            Whisper model
+            <select id="model">
+              <option value="base">Base</option>
+              <option value="tiny">Tiny</option>
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large-v3">Large v3</option>
+            </select>
+          </label>
+
           <label for="language">
             Source language
             <input id="language" type="text" placeholder="Optional, e.g. pt, en, es" />
@@ -443,6 +454,7 @@
       const tokenInput = document.getElementById("api-token");
       const fileInput = document.getElementById("media-file");
       const taskInput = document.getElementById("task");
+      const modelInput = document.getElementById("model");
       const languageInput = document.getElementById("language");
       const button = document.getElementById("submit-button");
       const status = document.getElementById("status");
@@ -535,10 +547,11 @@
         }
       }
 
-      async function submitTranscription(file, language, task, token) {
+      async function submitTranscription(file, language, task, model, token) {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("task", task);
+        formData.append("model", model);
         if (language) {
           formData.append("language", language);
         }
@@ -577,6 +590,7 @@
         const token = tokenInput.value.trim();
         const language = languageInput.value.trim();
         const task = taskInput.value;
+        const model = modelInput.value;
 
         if (!file) {
           alert("Select an audio or video file.");
@@ -599,7 +613,7 @@
         setStatus("Uploading media and waiting for transcription...", "");
 
         try {
-          const payload = await submitTranscription(file, language, task, token);
+          const payload = await submitTranscription(file, language, task, model, token);
           renderResults(payload);
           setStatus("Transcription completed successfully.", "success");
         } catch (error) {

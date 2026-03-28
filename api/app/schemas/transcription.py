@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 
 TranscriptionTask = Literal["transcribe", "translate"]
+WhisperModelOption = Literal["tiny", "base", "small", "medium", "large-v3"]
 
 
 class TranscriptionRequest(BaseModel):
@@ -23,6 +24,11 @@ class TranscriptionRequest(BaseModel):
         default="transcribe",
         description="Whether to return speech in the original language or translate it to English.",
         examples=["transcribe", "translate"],
+    )
+    model: WhisperModelOption | None = Field(
+        default=None,
+        description="Optional faster-whisper model name. If omitted, the server default is used.",
+        examples=["tiny", "base", "small", "medium", "large-v3"],
     )
 
 

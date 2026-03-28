@@ -185,7 +185,8 @@ Payload:
 {
   "url": "https://www.youtube.com/watch?v=VIDEO_ID",
   "language": "pt",
-  "task": "transcribe"
+  "task": "transcribe",
+  "model": "tiny"
 }
 ```
 
@@ -193,6 +194,7 @@ Response:
 
 - `200 OK` with JSON transcription output
 - returns `text`, `language`, `duration`, `model`, `device`, `compute_type`, and `segments`
+- request can optionally choose the faster-whisper model with `model`
 - `401` when the API access token is missing or invalid and authentication is enabled
 - `422` for an invalid URL
 - `400` for audio extraction or transcription failures
@@ -206,6 +208,7 @@ Send `multipart/form-data` with:
 - `file`: audio or video file
 - `language`: optional source language like `pt` or `en`
 - `task`: `transcribe` or `translate`
+- `model`: optional model such as `tiny`, `base`, `small`, `medium`, or `large-v3`
 
 Example:
 
