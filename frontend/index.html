@@ -8,10 +8,13 @@
       :root {
         --bg: #f4efe7;
         --card: rgba(255, 252, 246, 0.92);
+        --card-strong: rgba(255, 250, 244, 0.98);
         --text: #1f1f1f;
         --muted: #6a6257;
         --accent: #ca3c25;
         --accent-hover: #a92f1c;
+        --accent-soft: rgba(202, 60, 37, 0.12);
+        --success-soft: rgba(36, 92, 60, 0.12);
         --border: rgba(31, 31, 31, 0.08);
         --shadow: 0 22px 60px rgba(34, 24, 15, 0.12);
       }
@@ -42,6 +45,14 @@
         box-shadow: var(--shadow);
         padding: 32px;
         backdrop-filter: blur(16px);
+      }
+
+      .layout {
+        width: min(100%, 1120px);
+        display: grid;
+        gap: 24px;
+        grid-template-columns: minmax(0, 640px) minmax(320px, 1fr);
+        align-items: start;
       }
 
       h1 {
@@ -103,6 +114,15 @@
         opacity: 0.75;
       }
 
+      button.secondary-button {
+        color: var(--text);
+        background: rgba(31, 31, 31, 0.06);
+      }
+
+      button.secondary-button:hover:not(:disabled) {
+        background: rgba(31, 31, 31, 0.1);
+      }
+
       .status {
         min-height: 24px;
         font-size: 0.95rem;
@@ -160,49 +180,208 @@
       .secondary-link:hover {
         background: rgba(31, 31, 31, 0.1);
       }
+
+      .history-panel {
+        display: grid;
+        gap: 18px;
+        align-self: stretch;
+      }
+
+      .history-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .history-header p {
+        margin-bottom: 0;
+      }
+
+      .history-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .history-actions button {
+        min-height: 46px;
+        padding: 12px 14px;
+        font-size: 0.92rem;
+      }
+
+      .history-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .history-empty {
+        padding: 18px;
+        border-radius: 18px;
+        background: rgba(31, 31, 31, 0.04);
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .history-item {
+        display: grid;
+        gap: 14px;
+        padding: 18px;
+        border-radius: 20px;
+        background: var(--card-strong);
+        border: 1px solid rgba(31, 31, 31, 0.08);
+      }
+
+      .history-item-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: flex-start;
+      }
+
+      .history-item-title {
+        margin: 0;
+        font-size: 1rem;
+        word-break: break-word;
+      }
+
+      .history-item-time {
+        flex: 0 0 auto;
+        font-size: 0.82rem;
+        color: var(--muted);
+        text-align: right;
+      }
+
+      .history-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .history-tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        padding: 0 10px;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        background: var(--accent-soft);
+        color: var(--accent-hover);
+      }
+
+      .history-tag.success {
+        background: var(--success-soft);
+        color: #245c3c;
+      }
+
+      .history-url {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.45;
+        color: var(--muted);
+        word-break: break-all;
+      }
+
+      .history-item-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .history-item-actions button {
+        min-height: 42px;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 980px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 16px;
+        }
+
+        .card {
+          padding: 24px;
+        }
+
+        .history-header,
+        .history-item-header {
+          flex-direction: column;
+        }
+
+        .history-item-time {
+          text-align: left;
+        }
+      }
     </style>
   </head>
   <body>
-    <main class="card">
-      <h1>Download YouTube Videos</h1>
-      <p>
-        Enter a public video URL, choose a target quality, and download the best matching file the source can provide.
-      </p>
-
-      <form id="download-form" class="form">
-        <div id="token-field" class="hidden">
-          <input
-            id="api-token"
-            type="password"
-            placeholder="Paste your API access token"
-          />
-        </div>
-        <select id="quality" aria-label="Download quality"></select>
-        <input
-          id="video-url"
-          type="url"
-          placeholder="https://www.youtube.com/watch?v=..."
-          required
-        />
-        <button id="download-button" type="submit">Download</button>
-        <div id="status" class="status" aria-live="polite"></div>
-      </form>
-
-      <section class="explore-panel" aria-label="API exploration">
-        <p class="explore-copy">
-          API-first interface for quick tests. Open the upload transcription page to send audio or video files and inspect timestamps directly in the browser.
+    <main class="layout">
+      <section class="card">
+        <h1>Download YouTube Videos</h1>
+        <p>
+          Enter a public video URL, choose a target quality, and download the best matching file the source can provide.
         </p>
-        <div class="explore-actions">
-          <a class="secondary-link" href="/transcribe">Open Transcription Upload</a>
-          <a class="secondary-link" href="/manage">Manage Access Tokens</a>
-        </div>
+
+        <form id="download-form" class="form">
+          <div id="token-field" class="hidden">
+            <input
+              id="api-token"
+              type="password"
+              placeholder="Paste your API access token"
+            />
+          </div>
+          <select id="quality" aria-label="Download quality"></select>
+          <input
+            id="video-url"
+            type="url"
+            placeholder="https://www.youtube.com/watch?v=..."
+            required
+          />
+          <button id="download-button" type="submit">Download</button>
+          <div id="status" class="status" aria-live="polite"></div>
+        </form>
+
+        <section class="explore-panel" aria-label="API exploration">
+          <p class="explore-copy">
+            API-first interface for quick tests. Open the upload transcription page to send audio or video files and inspect timestamps directly in the browser.
+          </p>
+          <div class="explore-actions">
+            <a class="secondary-link" href="/transcribe">Open Transcription Upload</a>
+            <a class="secondary-link" href="/manage">Manage Access Tokens</a>
+          </div>
+        </section>
       </section>
+
+      <aside class="card history-panel" aria-labelledby="history-title">
+        <div class="history-header">
+          <div>
+            <h2 id="history-title">Downloaded Videos</h2>
+            <p>
+              Frontend-only history stored in this browser. It tracks successful downloads started from this page.
+            </p>
+          </div>
+          <div class="history-actions">
+            <button id="clear-history-button" class="secondary-button" type="button">Clear history</button>
+          </div>
+        </div>
+
+        <div id="history-list" class="history-list" aria-live="polite"></div>
+      </aside>
     </main>
 
     <script>
       const API_URL = new URL("/api/v1/downloads", window.location.origin).toString();
       const PUBLIC_SETTINGS_URL = new URL("/api/v1/settings/public", window.location.origin).toString();
       const TOKEN_STORAGE_KEY = "yt_download_api_access_token";
+      const DOWNLOAD_HISTORY_STORAGE_KEY = "yt_download_api_download_history";
+      const MAX_HISTORY_ITEMS = 25;
 
       const form = document.getElementById("download-form");
       const tokenField = document.getElementById("token-field");
@@ -211,6 +390,8 @@
       const input = document.getElementById("video-url");
       const button = document.getElementById("download-button");
       const status = document.getElementById("status");
+      const historyList = document.getElementById("history-list");
+      const clearHistoryButton = document.getElementById("clear-history-button");
 
       let requireApiAuthentication = true;
       tokenInput.value = sessionStorage.getItem(TOKEN_STORAGE_KEY) || "";
@@ -235,6 +416,103 @@
 
       function extractDeliveredResolution(response) {
         return response.headers.get("X-Video-Resolution");
+      }
+
+      function loadDownloadHistory() {
+        try {
+          const rawValue = localStorage.getItem(DOWNLOAD_HISTORY_STORAGE_KEY);
+          const history = rawValue ? JSON.parse(rawValue) : [];
+          return Array.isArray(history) ? history : [];
+        } catch (_) {
+          return [];
+        }
+      }
+
+      function saveDownloadHistory(history) {
+        localStorage.setItem(
+          DOWNLOAD_HISTORY_STORAGE_KEY,
+          JSON.stringify(history.slice(0, MAX_HISTORY_ITEMS)),
+        );
+      }
+
+      function formatDateTime(value) {
+        try {
+          return new Intl.DateTimeFormat(undefined, {
+            dateStyle: "medium",
+            timeStyle: "short",
+          }).format(new Date(value));
+        } catch (_) {
+          return value;
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll("\"", "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function renderDownloadHistory() {
+        const history = loadDownloadHistory();
+        clearHistoryButton.disabled = history.length === 0;
+
+        if (!history.length) {
+          historyList.innerHTML = `
+            <div class="history-empty">
+              No downloads registered yet. Start a download here and the entry will appear in this browser.
+            </div>
+          `;
+          return;
+        }
+
+        historyList.innerHTML = history
+          .map((item) => {
+            const deliveredResolution = item.deliveredResolution
+              ? `<span class="history-tag success">Delivered ${escapeHtml(item.deliveredResolution)}</span>`
+              : "";
+
+            return `
+              <article class="history-item">
+                <div class="history-item-header">
+                  <div>
+                    <h3 class="history-item-title">${escapeHtml(item.filename || "Downloaded video")}</h3>
+                  </div>
+                  <div class="history-item-time">${escapeHtml(formatDateTime(item.downloadedAt))}</div>
+                </div>
+                <div class="history-meta">
+                  <span class="history-tag">Requested ${escapeHtml(item.requestedQuality || "default")}</span>
+                  ${deliveredResolution}
+                </div>
+                <p class="history-url">${escapeHtml(item.url)}</p>
+                <div class="history-item-actions">
+                  <button type="button" class="secondary-button" data-action="reuse" data-id="${escapeHtml(item.id)}">
+                    Reuse URL
+                  </button>
+                  <button type="button" class="secondary-button" data-action="remove" data-id="${escapeHtml(item.id)}">
+                    Remove
+                  </button>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function addDownloadToHistory(entry) {
+        const history = loadDownloadHistory();
+        const nextHistory = [
+          {
+            id: `download-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+            ...entry,
+          },
+          ...history,
+        ];
+
+        saveDownloadHistory(nextHistory);
+        renderDownloadHistory();
       }
 
       function populateQualityOptions(options, defaultQuality) {
@@ -323,7 +601,7 @@
         link.remove();
 
         URL.revokeObjectURL(downloadUrl);
-        return deliveredResolution;
+        return { deliveredResolution, filename };
       }
 
       form.addEventListener("submit", async (event) => {
@@ -353,7 +631,14 @@
         setStatus("Preparing download...", "");
 
         try {
-          const deliveredResolution = await downloadVideo(url, quality, token);
+          const { deliveredResolution, filename } = await downloadVideo(url, quality, token);
+          addDownloadToHistory({
+            filename,
+            url,
+            requestedQuality: quality,
+            deliveredResolution,
+            downloadedAt: new Date().toISOString(),
+          });
           const resolutionMessage = deliveredResolution ? ` Delivered: ${deliveredResolution}.` : "";
           setStatus(`Download started successfully.${resolutionMessage}`, "success");
         } catch (error) {
@@ -365,6 +650,39 @@
         }
       });
 
+      clearHistoryButton.addEventListener("click", () => {
+        localStorage.removeItem(DOWNLOAD_HISTORY_STORAGE_KEY);
+        renderDownloadHistory();
+        setStatus("Local download history cleared.", "success");
+      });
+
+      historyList.addEventListener("click", (event) => {
+        const buttonElement = event.target.closest("button[data-action]");
+        if (!buttonElement) {
+          return;
+        }
+
+        const { action, id } = buttonElement.dataset;
+        const history = loadDownloadHistory();
+        const selectedItem = history.find((item) => item.id === id);
+
+        if (action === "reuse" && selectedItem) {
+          input.value = selectedItem.url;
+          qualitySelect.value = selectedItem.requestedQuality || qualitySelect.value;
+          input.focus();
+          setStatus(`Download restored for ${selectedItem.filename}.`, "success");
+          return;
+        }
+
+        if (action === "remove") {
+          const nextHistory = history.filter((item) => item.id !== id);
+          saveDownloadHistory(nextHistory);
+          renderDownloadHistory();
+          setStatus("Download removed from local history.", "success");
+        }
+      });
+
+      renderDownloadHistory();
       loadPublicConfiguration();
     </script>
   </body>
