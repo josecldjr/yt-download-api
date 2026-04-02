@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import shutil
 import tempfile
 from dataclasses import dataclass
@@ -14,6 +15,8 @@ from yt_dlp.utils import DownloadError, sanitize_filename
 
 from app.core.config import settings
 from app.schemas.api_configuration import DownloadQuality
+
+logger = logging.getLogger(__name__)
 
 
 class YoutubeDownloadException(Exception):
@@ -79,6 +82,16 @@ class YouTubeDownloaderService:
                     break
                 except DownloadError as exc:
                     last_download_error = exc
+                    logger.warning(
+                        "yt-dlp download attempt failed",
+                        extra={
+                            "url": url,
+                            "quality": quality,
+                            "format": options.get("format"),
+                            "delivery_strategy": options.get("delivery_strategy"),
+                            "error": str(exc),
+                        },
+                    )
                     self._cleanup_files(temp_dir)
 
             if downloaded_info is None:
@@ -102,9 +115,27 @@ class YouTubeDownloaderService:
             )
         except DownloadError as exc:
             self._cleanup(temp_dir)
+            logger.exception(
+                "yt-dlp failed to download video",
+                extra={
+                    "url": url,
+                    "quality": quality,
+                    "error": str(exc),
+                },
+            )
             raise YoutubeDownloadException(self._normalize_error(exc)) from exc
+        except YoutubeDownloadException:
+            self._cleanup(temp_dir)
+            raise
         except Exception as exc:
             self._cleanup(temp_dir)
+            logger.exception(
+                "Unexpected failure while processing YouTube download",
+                extra={
+                    "url": url,
+                    "quality": quality,
+                },
+            )
             raise YoutubeDownloadException("Unexpected failure while processing the download.") from exc
 
     def cleanup(self, temp_dir: Path) -> None:
@@ -135,6 +166,26 @@ class YouTubeDownloaderService:
             return "The provided URL could not be processed as a valid YouTube video."
         if "video unavailable" in lowered:
             return "The video is unavailable, private, or region-restricted."
+        if "sign in to confirm you're not a bot" in lowered or "confirm you’re not a bot" in lowered:
+            return (
+                "YouTube blocked this request with a bot-check challenge. "
+                "Configure YOUTUBE_COOKIEFILE or YOUTUBE_PO_TOKEN and try again."
+            )
+        if "http error 403" in lowered or "403: forbidden" in lowered or "forbidden" in lowered:
+            return (
+                "YouTube denied access to the requested video stream. "
+                "This video may require authenticated cookies or a PO token."
+            )
+        if "requested format is not available" in lowered:
+            return (
+                "The requested quality is not available for anonymous download on this video. "
+                "Try a lower quality or configure YOUTUBE_COOKIEFILE or YOUTUBE_PO_TOKEN."
+            )
+        if "requested format not available" in lowered:
+            return (
+                "The requested quality is not available for anonymous download on this video. "
+                "Try a lower quality or configure YOUTUBE_COOKIEFILE or YOUTUBE_PO_TOKEN."
+            )
 
         return "The video could not be downloaded at this time."
 
