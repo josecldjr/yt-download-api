@@ -62,6 +62,10 @@ jobs:
 
       - name: Set kubeconfig
         run: |
+          if [ -z "${{ secrets.KUBECONFIG }}" ]; then
+            echo "::error::Secret KUBECONFIG não configurado. Veja k8s-deploy-spec.md para instruções."
+            exit 1
+          fi
           mkdir -p ~/.kube
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
