@@ -49,37 +49,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  deploy:
-    runs-on: [self-hosted, k8s, homelab]
-    needs: docker
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/kubectl
-
-      - name: Apply manifests
-        run: |
-          kubectl apply -f k8s/ \
-            --server=https://kubernetes.default.svc \
-            --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) \
-            --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-
-      - name: Rollout restart
-        run: |
-          kubectl rollout restart deployment/yt-download-api -n default \
-            --server=https://kubernetes.default.svc \
-            --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) \
-            --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-
-      - name: Wait for rollout
-        run: |
-          kubectl rollout status deployment/yt-download-api -n default --timeout=120s \
-            --server=https://kubernetes.default.svc \
-            --token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) \
-            --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
